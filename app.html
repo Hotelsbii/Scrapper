@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prix Hôtel</title>
+<style>
+/* Mise en page : barre du haut, zone de travail à gauche, compset toujours visible à droite */
+:root{
+  --bg:#f3f5f7; --panel:#ffffff; --ink:#17212b; --muted:#5f6b76; --line:#e0e5ea; --line2:#eef1f4;
+  --accent:#0f6e6a; --accent-ink:#ffffff; --accent-soft:#e3f1ef; --good:#1d7a3a; --good-soft:#e5f3e8;
+  --bad:#b3261e; --bad-soft:#fbe9e7; --warn:#8a5a00; --shadow:0 1px 2px rgba(20,30,40,.06),0 4px 14px rgba(20,30,40,.05);
+  --f:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  --fd:"Segoe UI Variable Display","Segoe UI Semibold","Segoe UI",system-ui,sans-serif;
+  --fm:"Cascadia Mono",Consolas,ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#12181d; --panel:#1a2228; --ink:#e7edf1; --muted:#98a5af; --line:#2c3740; --line2:#222c33;
+  --accent:#4fbfb6; --accent-ink:#0c1614; --accent-soft:#1d3634; --good:#6fd08c; --good-soft:#1c3324;
+  --bad:#f08a80; --bad-soft:#3a2220; --warn:#e3b35a; --shadow:none; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14.5px/1.45 var(--f)}
+button,input,select{font:inherit;color:inherit}
+[hidden]{display:none!important}
+a{color:var(--accent)}
+.num{font-variant-numeric:tabular-nums}
+
+/* barre du haut */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;padding:10px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;font:600 17px var(--fd);white-space:nowrap}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:15px}
+.brand small{font:400 12.5px var(--f);color:var(--muted)}
+.tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:10px}
+.tabs button{border:0;background:transparent;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted);display:flex;gap:8px;align-items:center}
+.tabs button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+.tabs .n{font:600 11.5px var(--f);background:var(--line);color:var(--ink);border-radius:99px;padding:0 7px;min-width:20px;text-align:center}
+.tabs button.on .n{background:var(--accent);color:var(--accent-ink)}
+.spacer{flex:1}
+.lien{border:0;background:none;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px}
+.lien:hover{color:var(--ink);background:var(--bg)}
+
+/* tâche en cours */
+.tache{display:flex;align-items:center;gap:14px;padding:10px 20px;background:var(--accent-soft);border-bottom:1px solid var(--line)}
+.tache .msg{flex:1;min-width:0;font-weight:600}
+.tache .barre{width:220px;height:6px;border-radius:99px;background:var(--panel);overflow:hidden}
+.tache .barre i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+.spin{width:16px;height:16px;border-radius:50%;border:2.5px solid var(--accent);border-right-color:transparent;animation:t .8s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.alerte{padding:10px 20px;background:var(--bad-soft);color:var(--bad);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center}
+.alerte span{flex:1}
+
+/* grille */
+.grille{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;padding:18px 20px 40px;max-width:1500px;margin:0 auto}
+@media (max-width:980px){.grille{grid-template-columns:1fr}}
+.carte{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+h1,h2,h3{font-family:var(--fd);margin:0;text-wrap:balance}
+h2{font-size:16px}
+.muted{color:var(--muted)}
+.petit{font-size:12.5px}
+
+/* boutons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);background:var(--panel);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.p{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.p:hover{filter:brightness(1.07)}
+#btnC{white-space:normal;text-align:center;line-height:1.3}
+.btn.s{padding:5px 10px;font-size:13px}
+.btn.ok{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* recherche */
+.recherche{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.champ{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.champ input,.champ select{text-transform:none;letter-spacing:0;font-size:14.5px;font-weight:400;color:var(--ink);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.champ.q input{font-size:17px;padding:12px 14px}
+.ligne{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.ligne .champ{min-width:140px}
+.ligne .btn.p{padding:10px 20px;font-size:15px}
+.astuce{margin:0;font-size:13px;color:var(--muted)}
+
+/* étapes (état vide) */
+.etapes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+@media (max-width:700px){.etapes{grid-template-columns:1fr}}
+.etape{padding:16px;display:flex;flex-direction:column;gap:6px}
+.etape b{font:600 13px var(--f);color:var(--accent)}
+.etape h3{font-size:15px}
+.etape p{margin:0;color:var(--muted);font-size:13.5px}
+
+/* résultats */
+.resHead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:18px 2px 10px}
+.resHead h2{font-size:17px}
+.outils{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.outils select,.outils input{padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel)}
+.liste{display:flex;flex-direction:column;gap:8px}
+.hotel{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:12px 16px}
+.hotel.vise{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.hotel .nom{font-weight:650;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hotel .nom a{color:var(--ink);text-decoration:none}
+.hotel .nom a:hover{color:var(--accent);text-decoration:underline}
+.hotel .det{font-size:13px;color:var(--muted);margin-top:2px}
+.tag{font:600 11.5px var(--f);padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.note{font:700 12px var(--f);background:#1f3b73;color:#fff;border-radius:6px 6px 6px 0;padding:2px 6px}
+.prix{text-align:right;min-width:110px}
+.prix .v{font:700 19px var(--fd)}
+.prix .d{font-size:12.5px;color:var(--muted)}
+.prix .x{color:var(--muted);font-size:13px}
+.actions{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+tr.ligneMoi td{background:var(--accent-soft)}
+.fiche td{white-space:normal;vertical-align:top;text-align:left}
+.fiche th{text-align:left}
+.fiche td.oui{color:var(--good);font-weight:700;text-align:center}
+.fiche td.non{color:var(--muted);text-align:center}
+.fiche tr.grp td{background:var(--bg);font-weight:700;color:var(--ink);position:static}
+.fiche tr.grp td:first-child{position:sticky;left:0}
+.puces{margin:0;padding-left:18px}
+.puces li{margin:2px 0}
+details.hotelF{margin-top:12px}
+details.hotelF>summary{padding:12px 14px;cursor:pointer;font-weight:650;font-size:15px}
+.fBody{padding:0 14px 14px;display:grid;gap:14px}
+.fBody h3{font-size:14px;margin:4px 0 6px}
+.zoomBar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.zoomBar input,.zoomBar select{padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink)}
+.zoneG svg{cursor:crosshair;user-select:none}
+#tabl tbody tr[data-d]{cursor:pointer}
+#tabl tbody tr[data-d]:hover td{background:var(--accent-soft)}
+.fond{position:fixed;inset:0;background:rgba(10,20,25,.45);z-index:50;display:grid;place-items:center;padding:20px}
+.modale{background:var(--panel);border-radius:14px;max-width:980px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modale .tete{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:4}
+.grilleJour{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;padding:14px 18px 18px}
+.grilleJour table td,.grilleJour table th{padding:5px 8px;font-size:12.5px}
+.grilleJour table td:first-child{white-space:normal;position:static}
+tr.ligneMoy td{font-weight:700;border-top:2px solid var(--line)}
+.bloc{margin-bottom:14px}
+.blocHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px}
+.cat{font:600 11.5px var(--f);padding:2px 8px;border-radius:99px;background:var(--bg);color:var(--muted)}
+.pdj{font:600 11px var(--f);color:var(--good)}
+@media (max-width:700px){.hotel{grid-template-columns:1fr;gap:10px}.prix{text-align:left}.actions{flex-direction:row}}
+.vide{padding:28px;text-align:center;color:var(--muted)}
+
+/* compset */
+.cs{padding:16px;display:flex;flex-direction:column;gap:12px;position:sticky;top:70px;align-self:start}
+.cs .items{display:flex;flex-direction:column;gap:6px}
+.it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 8px 8px 6px;border:1px solid var(--line);border-radius:9px}
+.it.moi{border-color:var(--accent);background:var(--accent-soft)}
+.it .t{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it .a{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.etoile,.croix{border:0;background:none;cursor:pointer;width:28px;height:28px;border-radius:6px;color:var(--muted);font-size:17px;line-height:1}
+.etoile:hover,.croix:hover{background:var(--bg);color:var(--ink)}
+.it.moi .etoile{color:var(--accent)}
+.pastille{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.periodes{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg);padding:4px;border-radius:9px}
+.periodes button{border:0;background:none;padding:6px 0;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted)}
+.periodes button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+.cs .champ input{padding:7px 9px}
+.ac{position:relative}
+.sugg{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.16);z-index:20;overflow:hidden;text-transform:none;letter-spacing:0;font-weight:400}
+.sugg button{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;width:100%;text-align:left;border:0;background:none;padding:8px 12px;cursor:pointer;color:var(--ink)}
+.sugg button.sel,.sugg button:hover{background:var(--accent-soft)}
+.sugg .ty{grid-row:span 2;align-self:center;font:600 10.5px var(--f);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--bg);border-radius:5px;padding:2px 6px;min-width:62px;text-align:center}
+.sugg .ty.h{background:var(--accent-soft);color:var(--accent)}
+.sugg .n1{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sugg .n2{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sugg .rien{padding:10px 12px;color:var(--muted);font-size:13px}
+.reprendre{border:0;background:none;color:var(--accent);cursor:pointer;padding:0;font-size:12.5px;text-decoration:underline;text-align:left}
+.sep{height:1px;background:var(--line)}
+.aide{font-size:12.5px;color:var(--muted);margin:0}
+
+/* comparaison */
+.compHead{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.compHead h1{font-size:21px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+@media (max-width:800px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{padding:12px 14px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .v{font:700 22px var(--fd);margin-top:2px}
+.kpi .s{font-size:12.5px;color:var(--muted)}
+.kpi .v.good{color:var(--good)} .kpi .v.bad{color:var(--bad)}
+.graph{padding:12px 14px 8px;margin-bottom:14px}
+.graphHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.seg{display:inline-flex;background:var(--bg);padding:3px;border-radius:8px;gap:2px}
+.seg button{border:0;background:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12.5px;color:var(--muted)}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+.zoneG{position:relative}
+.zoneG svg{display:block;width:100%}
+.zoneG text{fill:var(--muted);font-size:11.5px;font-family:var(--f)}
+.bulle{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:9px;box-shadow:0 6px 20px rgba(0,0,0,.14);padding:8px 10px;font-size:12.5px;min-width:220px;z-index:3}
+.bulle .dt{font-weight:700;margin-bottom:4px}
+.bulle .l{display:flex;gap:7px;align-items:center;justify-content:space-between}
+.bulle .l span:first-child{display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px}
+.legende{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px}
+.legende button{border:0;background:none;cursor:pointer;display:flex;gap:6px;align-items:center;font-size:12.5px;padding:2px 4px;border-radius:5px;color:var(--ink)}
+.legende button.off{opacity:.35}
+.legende .trait{width:16px;height:3px;border-radius:2px;display:inline-block}
+.tabl{overflow:auto;max-height:520px;border-top:1px solid var(--line)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line2);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel);z-index:1}
+thead th{position:sticky;top:0;background:var(--panel);z-index:2;font-size:12px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);vertical-align:bottom;white-space:normal;min-width:84px}
+thead th:first-child{z-index:3}
+td.moins{background:var(--good-soft)} td.plus{background:var(--bad-soft)}
+td.complet{color:var(--muted);font-style:italic}
+td.moyc{font-weight:700}
+tr.we td:first-child{color:var(--accent);font-weight:600}
+.sousTabs{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;gap:10px;flex-wrap:wrap}
+.pill{font:600 12px var(--f);padding:2px 8px;border-radius:99px}
+.pill.good{background:var(--good-soft);color:var(--good)} .pill.bad{background:var(--bad-soft);color:var(--bad)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true">€</span><div>Prix Hôtel<br><small>Veille tarifaire Booking</small></div></div>
+  <nav class="tabs" aria-label="Vues">
+    <button id="tabR" class="on" data-vue="R">Rechercher</button>
+    <button id="tabC" data-vue="C">Comparer <span class="n" id="nbC">0</span></button>
+    <button id="tabF" data-vue="F">Fiches hôtels</button>
+  </nav>
+  <div class="spacer"></div>
+  <button class="lien" id="btnDossier" title="Ouvre le dossier où sont enregistrés les fichiers Excel">Ouvrir le dossier des fichiers</button>
+</header>
+
+<div class="tache" id="tache" hidden role="status" aria-live="polite">
+  <div class="spin" aria-hidden="true"></div><div class="msg" id="tMsg">…</div>
+  <div class="barre"><i id="tBar"></i></div>
+  <button class="btn s" id="btnStop">Arrêter</button>
+</div>
+<div class="alerte" id="alerte" hidden role="alert"><span id="aMsg"></span><button class="btn s" id="aFermer">Fermer</button></div>
+
+<main class="grille">
+  <div>
+    <!-- ================= RECHERCHE ================= -->
+    <section id="vueR">
+      <form class="carte recherche" id="fR" autocomplete="off">
+        <div class="champ q ac"><label for="q">Hôtel ou quartier</label>
+          <input id="q" placeholder="ex. M Social Paris, Opéra Paris, W Florence…" required role="combobox" aria-autocomplete="list">
+        </div>
+        <div class="ligne">
+          <label class="champ">Arrivée<input type="date" id="arr" required></label>
+          <label class="champ">Départ<input type="date" id="dep" required></label>
+          <label class="champ" style="min-width:90px">Adultes<select id="ad"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+          <button class="btn p" id="btnR" type="submit">Chercher les prix</button>
+        </div>
+        <p class="astuce">Tapez un quartier pour voir tous les hôtels autour, puis ajoutez vos concurrents au compset avec « + Compset ».</p>
+      </form>
+
+      <div id="rVide">
+        <div class="etapes">
+          <div class="carte etape"><b>Étape 1</b><h3>Cherchez</h3><p>Un hôtel précis ou un quartier. Les prix Booking s'affichent pour vos dates.</p></div>
+          <div class="carte etape"><b>Étape 2</b><h3>Composez le compset</h3><p>Cliquez sur « + Compset » sur les hôtels concurrents, et ★ sur le vôtre.</p></div>
+          <div class="carte etape"><b>Étape 3</b><h3>Comparez sur l'année</h3><p>Choisissez la période à droite et lancez la comparaison jour par jour.</p></div>
+        </div>
+      </div>
+
+      <div id="rRes" hidden>
+        <div class="resHead">
+          <div><h2 id="rTitre"></h2><div class="muted petit" id="rSous"></div></div>
+          <div class="outils">
+            <input id="rFiltre" placeholder="Filtrer par nom…" aria-label="Filtrer par nom">
+            <select id="rTri" aria-label="Trier"><option value="rang">Ordre Booking</option><option value="prix">Prix croissant</option><option value="note">Meilleure note</option></select>
+            <a class="btn s" id="rBooking" target="_blank" rel="noopener">Voir sur Booking ↗</a>
+          </div>
+        </div>
+        <div class="liste" id="rListe"></div>
+      </div>
+    </section>
+
+    <!-- ================= COMPARAISON ================= -->
+    <section id="vueC" hidden>
+      <div id="cVide" class="carte vide">
+        <h2 style="margin-bottom:6px">Aucune comparaison pour l'instant</h2>
+        <p>Ajoutez des hôtels au compset depuis « Rechercher », puis cliquez sur « Comparer les prix » à droite.<br>
+        Pour un seul hôtel, cliquez sur « Prix sur l'année » dans les résultats.</p>
+      </div>
+      <div id="cRes" hidden>
+        <div class="compHead">
+          <div><h1 id="cTitre"></h1><div class="muted petit" id="cSous"></div></div>
+          <div class="outils"><button class="btn" id="btnXlsx" hidden title="Un onglet par catégorie de chambre et par condition d'annulation">Excel complet (tous les onglets)</button><button class="btn" id="btnExcel">Ouvrir dans Excel</button></div>
+        </div>
+        <div class="kpis" id="kpis"></div>
+        <div class="carte graph">
+          <div class="graphHead">
+            <h2>Prix par nuit</h2>
+            <div class="seg" id="segLisse"><button data-v="jour">Par jour</button><button data-v="semaine">Moyenne par semaine</button></div>
+          </div>
+          <div class="zoomBar" style="margin-bottom:6px">
+            <span>Période affichée :</span>
+            <select id="zMois" aria-label="Choisir un mois"></select>
+            <span>du</span><input type="date" id="zDu" aria-label="Début de la période affichée">
+            <span>au</span><input type="date" id="zAu" aria-label="Fin de la période affichée">
+            <button class="btn s" id="zTout">Tout afficher</button>
+            <span class="petit">Astuce : cliquez-glissez sur le graphique pour zoomer, double-cliquez pour tout revoir.</span>
+          </div>
+          <div class="zoneG" id="zoneG"></div>
+          <div class="legende" id="legende"></div>
+        </div>
+        <div class="carte">
+          <div class="sousTabs">
+            <div class="seg" id="segTab"><button data-v="mois" class="on">Par mois</button><button data-v="jour">Jour par jour</button></div>
+            <span class="muted petit" id="tabAide"></span>
+          </div>
+          <div class="tabl" id="tabl"></div>
+        </div>
+        <details class="carte" id="catBloc" hidden style="margin-top:14px">
+          <summary style="padding:12px 14px;cursor:pointer;font-weight:650">Catégories de chambres <span class="muted petit" style="font-weight:400">— vérifiez et corrigez le classement de chaque chambre</span></summary>
+          <div id="catListe" style="padding:0 14px 14px"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= FLEX & CHAMBRES ================= -->
+    <section id="vueT" hidden>
+      <div id="tVide" class="carte vide">
+        <h2 style="margin-bottom:6px">Flex, non-flex et catégories de chambres</h2>
+        <p>Pour un hôtel : cliquez sur « Tarifs détaillés » dans les résultats de recherche (pour vos dates).<br>
+        Pour tout le compset : cliquez sur « Comparer flex / non-flex » à droite, sur 1 à 30 jours.</p>
+      </div>
+      <div id="tRes" hidden>
+        <div class="seg" id="segT" style="margin-bottom:12px"><button data-v="hotel">Détail d'un hôtel</button><button data-v="cs">Compset</button></div>
+        <div id="tHotel"></div>
+        <div id="tCs"></div>
+      </div>
+    </section>
+
+    <!-- ================= FICHES HÔTELS ================= -->
+    <section id="vueF" hidden>
+      <div id="fVide" class="carte vide">
+        <h2 style="margin-bottom:6px">Fiches des hôtels du compset</h2>
+        <p>Équipements, notes et sous-notes, horaires d'arrivée et de départ, petit-déjeuner, chambres (surface, lits, équipements),<br>règles de l'établissement, informations utiles et environs, pour chaque hôtel du compset, côte à côte.</p>
+        <p><button class="btn p" id="btnF">Lire les fiches du compset</button></p>
+        <p class="petit">Environ 10 secondes par hôtel. Les fiches sont gardées 7 jours.</p>
+      </div>
+      <div id="fRes" hidden></div>
+    </section>
+  </div>
+
+  <!-- ================= COMPSET ================= -->
+  <aside class="carte cs" aria-label="Mon compset">
+    <div><h2>Mon compset</h2><div class="muted petit" id="csSous">Aucun hôtel</div></div>
+    <div class="champ ac"><label for="csQ">Ajouter un hôtel</label>
+      <input id="csQ" placeholder="Tapez le nom de n'importe quel hôtel…" role="combobox" aria-autocomplete="list">
+    </div>
+    <div class="items" id="csItems"></div>
+    <button class="reprendre" id="csReprendre" hidden></button>
+    <p class="aide" id="csAide">Tapez le nom d'un hôtel ci-dessus, ou cliquez sur « + Compset » dans les résultats de recherche. L'étoile ★ désigne votre hôtel.</p>
+    <div class="sep"></div>
+    <div class="champ">Période
+      <div class="periodes" id="periodes"><button data-j="30">30 j</button><button data-j="90">90 j</button><button data-j="180">6 mois</button><button data-j="365" class="on">1 an</button></div>
+    </div>
+    <label class="champ">À partir du<input type="date" id="debut"></label>
+    <div class="ligne" style="gap:8px">
+      <label class="champ" style="flex:1;min-width:0">Chambre<select id="segCat"><option value="">Toutes</option><option>Standard</option><option>Supérieure</option><option>Deluxe</option><option>Suite</option><option>Familiale</option></select></label>
+      <label class="champ" style="flex:1;min-width:0">Annulation<select id="segFlex"><option value="">Toutes</option><option value="flex">Gratuite (flex)</option><option value="nonflex">Non remboursable</option></select></label>
+    </div>
+    <button class="btn p" id="btnC">Comparer les prix</button>
+    <p class="aide" id="aideC">Prix « à partir de » pour 1 nuit, tirés du calendrier Booking. Quelques secondes pour tout le compset, même sur un an.</p>
+    <div hidden>
+    <div class="champ">Flex et catégories de chambres
+      <div class="periodes" id="perT" style="grid-template-columns:repeat(5,1fr)"><button data-j="1" class="on">1 j</button><button data-j="7">7 j</button><button data-j="30">30 j</button><button data-j="90">90 j</button><button data-j="365">1 an</button></div>
+    </div>
+    <button class="btn" id="btnT">Comparer flex / non-flex</button>
+    <p class="aide" id="aideT"></p>
+    </div>
+  </aside>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const COUL=['#0f6e6a','#d9622b','#3f63c0','#9b3f8f','#6f8f1d','#b8901a','#7a5a3c','#2596c8','#c8465a','#6b7280','#2f8f5b','#8c5bd6'];
+const MOYC='var(--ink)';
+const fmt=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0});
+const eur=v=>v==null||isNaN(v)?'–':fmt.format(v)+' €';
+const iso=d=>{const x=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return x.toISOString().slice(0,10)};
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addJ=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const fdl=(s,o)=>parse(s).toLocaleDateString('fr-FR',o||{weekday:'short',day:'numeric',month:'short'});
+const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const moy=a=>{const v=a.filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
+async function api(ch,corps){
+  const r=await fetch(ch,corps?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corps)}:{});
+  if(!r.ok)throw new Error('Erreur '+r.status);return r.json();
+}
+function alerte(t){$('aMsg').textContent=t;$('alerte').hidden=false}
+$('aFermer').onclick=()=>$('alerte').hidden=true;
+
+/* ---------- état ---------- */
+let cs=[];            // {hotel,adresse,lien,moi}
+let recherche=null;   // dernier résultat de recherche
+let comp=null;        // dernière comparaison
+let jours=365, lisse=null, sousTab='mois', masques=new Set();
+try{const c=JSON.parse(localStorage.getItem('prixhotel-comp')||'null');if(c)comp=c}catch(e){}
+
+/* ---------- vues ---------- */
+function vue(v){
+  $('vueR').hidden=v!=='R';$('vueC').hidden=v!=='C';$('vueT').hidden=v!=='T';$('vueF').hidden=v!=='F';$('tabF').classList.toggle('on',v==='F');
+  $('tabR').classList.toggle('on',v==='R');$('tabC').classList.toggle('on',v==='C');
+  if(v==='C')dessinerComp();if(v==='T')dessinerT();if(v==='F')dessinerFiches();
+}
+$('tabR').onclick=()=>vue('R');$('tabC').onclick=()=>vue('C');$('tabF').onclick=()=>vue('F');
+$('btnDossier').onclick=()=>api('/api/dossier',{}).catch(()=>{});
+
+/* ---------- dates par défaut ---------- */
+const auj=new Date();auj.setHours(0,0,0,0);
+$('arr').value=iso(addJ(auj,14));$('dep').value=iso(addJ(auj,15));$('debut').value=iso(auj);
+$('arr').addEventListener('change',()=>{if($('dep').value<=$('arr').value)$('dep').value=iso(addJ(parse($('arr').value),1))});
+
+/* ---------- tâches de fond ---------- */
+let suivi=null;
+function occupe(o){
+  $('tache').hidden=!o;['btnR','btnC'].forEach(id=>$(id).disabled=o);
+  document.querySelectorAll('[data-an],[data-tf],#btnT').forEach(b=>b.disabled=o);
+}
+async function lancer(ch,corps){
+  $('alerte').hidden=true;
+  let r;try{r=await api(ch,corps)}catch(e){alerte("L'application ne répond pas. Fermez la fenêtre et relancez « Prix hotel Booking ».");return}
+  if(r.erreur){alerte(r.erreur);return}
+  occupe(true);$('tMsg').textContent='Démarrage…';$('tBar').style.width='3%';
+  clearInterval(suivi);
+  suivi=setInterval(async()=>{
+    let t;try{t=await api('/api/tache')}catch(e){return}
+    if(t.id!==r.id)return;
+    $('tMsg').textContent=t.message;$('tBar').style.width=Math.max(3,t.progression||0)+'%';
+    if(t.etat==='fini'){clearInterval(suivi);occupe(false);fini(t)}
+    else if(t.etat==='erreur'){clearInterval(suivi);occupe(false);alerte(t.message)}
+  },700);
+}
+$('btnStop').onclick=()=>{api('/api/arreter',{});$('tMsg').textContent='Arrêt en cours…'};
+function fini(t){
+  zoom=null;
+  if(t.type==='recherche'){recherche=t.resultat;dessinerRecherche();vue('R')}
+  else if(t.type==='tarifs'){tarifs=t.resultat;sousT='hotel';vue('T')}
+  else if(t.type==='tarifscs'){tarifsCs=deplier(t.resultat);
+    if(attenteSeg){tarifsCs._cle=attenteSeg;attenteSeg=null;comp=compDepuisTarifs(tarifsCs,segment());masques.clear();lisse=null;majBoutonC();vue('C')}
+    else{tarifsCs._cle=cleDemande();comp=compDepuisTarifs(tarifsCs,segment());masques.clear();lisse=null;majBoutonC();vue('C')}}
+  else if(t.type==='fiches'){fiches=t.resultat;vue('F')}
+  else if(t.type==='fiche'){const h=t.resultat;if(!dansCs(h.lien)){cs.push({hotel:h.hotel,adresse:h.adresse,lien:h.lien,moi:false});sauverCs()}
+    if(recherche)dessinerRecherche();$('csQ').focus()}
+  else{comp=t.resultat;masques.clear();lisse=null;try{localStorage.setItem('prixhotel-comp',JSON.stringify(comp))}catch(e){}vue('C')}
+}
+/* Mise à jour de l'application : la fenêtre se recharge d'elle-même (hors recherche en cours) */
+let versionPage=null;
+function verifierVersion(){api('/api/ping').then(r=>{
+  if(!r.page)return;
+  if(versionPage===null){versionPage=r.page;return}
+  if(r.page!==versionPage&&$('tache').hidden&&!document.querySelector('.fond'))location.reload();
+}).catch(()=>{})}
+verifierVersion();setInterval(verifierVersion,15000);
+
+/* ---------- recherche ---------- */
+$('fR').addEventListener('submit',e=>{
+  e.preventDefault();
+  const nom=$('q').value.trim();if(!nom)return;
+  if($('dep').value<=$('arr').value){alerte("La date de départ doit être après la date d'arrivée.");return}
+  lancer('/api/recherche',{nom,dest:destChoisie,arrivee:$('arr').value,depart:$('dep').value,adultes:+$('ad').value});
+});
+let destChoisie=null;
+$('q').addEventListener('input',()=>destChoisie=null);
+
+/* ---------- suggestions Booking ---------- */
+const TYPES={hotel:'Hôtel',city:'Ville',district:'Quartier',landmark:'Lieu',region:'Région',airport:'Aéroport',country:'Pays'};
+function suggestions(input,surChoix){
+  const box=document.createElement('div');box.className='sugg';box.hidden=true;box.setAttribute('role','listbox');
+  input.after(box);
+  let minut,items=[],sel=-1,req=0;
+  const fermer=()=>{box.hidden=true;sel=-1};
+  const peindre=()=>{
+    box.innerHTML=items.length?items.map((o,i)=>`<button type="button" data-i="${i}" class="${i===sel?'sel':''}" role="option"><span class="ty ${o.type==='hotel'?'h':''}">${TYPES[o.type]||esc(o.type)}</span><span class="n1">${esc(o.nom)}</span><span class="n2">${esc(o.sous)}</span></button>`).join(''):'<div class="rien">Aucune suggestion Booking pour ce nom.</div>';
+    box.hidden=false;
+  };
+  input.addEventListener('input',()=>{
+    clearTimeout(minut);const q=input.value.trim();if(q.length<3){fermer();return}
+    minut=setTimeout(async()=>{const n=++req;let r;try{r=await api('/api/suggestions?q='+encodeURIComponent(q))}catch(e){return}
+      if(n!==req||input.value.trim()!==q)return;items=r.resultats||[];sel=items.length?0:-1;peindre()},280);
+  });
+  input.addEventListener('keydown',e=>{
+    if(box.hidden||!items.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();sel=(sel+1)%items.length;peindre()}
+    else if(e.key==='ArrowUp'){e.preventDefault();sel=(sel-1+items.length)%items.length;peindre()}
+    else if(e.key==='Enter'&&sel>=0){e.preventDefault();const o=items[sel];fermer();surChoix(o)}
+    else if(e.key==='Escape'){fermer()}
+  });
+  box.addEventListener('mousedown',e=>{e.preventDefault();const b=e.target.closest('button');if(!b)return;const o=items[+b.dataset.i];fermer();surChoix(o)});
+  input.addEventListener('blur',()=>setTimeout(fermer,120));
+}
+suggestions($('q'),o=>{$('q').value=o.nom;destChoisie=o;$('fR').requestSubmit()});
+suggestions($('csQ'),o=>{
+  if(o.type!=='hotel'){ // un quartier ou une ville : on affiche ses hôtels dans l'onglet Rechercher
+    $('q').value=o.nom;destChoisie=o;vue('R');$('csQ').value='';$('fR').requestSubmit();return;
+  }
+  $('csQ').value='';
+  lancer('/api/fiche',{id:o.id,libelle:o.libelle,nom:o.nom,sous:o.sous});
+});
+$('rFiltre').oninput=dessinerRecherche;$('rTri').onchange=dessinerRecherche;
+function dansCs(lien){return cs.some(h=>h.lien===lien)}
+function dessinerRecherche(){
+  const r=recherche;if(!r)return;
+  $('rVide').hidden=true;$('rRes').hidden=false;
+  const avecPrix=r.offres.filter(o=>o.prix!=null).length;
+  $('rTitre').textContent=r.reconnu?r.reconnu.split(',').slice(0,2).join(','):'« '+r.nom+' »';
+  $('rSous').textContent=`${r.offres.length} hôtel(s), ${avecPrix} avec un prix · ${fdl(r.arrivee)} → ${fdl(r.depart)} · ${r.nuits} nuit${r.nuits>1?'s':''} · ${r.adultes} adulte${r.adultes>1?'s':''}`;
+  $('rBooking').href=r.url;
+  const f=$('rFiltre').value.trim().toLowerCase(),tri=$('rTri').value;
+  let l=r.offres.filter(o=>!f||o.hotel.toLowerCase().includes(f));
+  l.sort((a,b)=>tri==='prix'?((a.prix??1e9)-(b.prix??1e9)):tri==='note'?((b.note??0)-(a.note??0)):(b.correspond-a.correspond)||(a.rang-b.rang));
+  if(!r.offres.length){
+    $('rListe').innerHTML=`<div class="carte vide">${r.page_lue?'Aucun hôtel lisible sur la page.':'Booking n\'a pas renvoyé de résultats pour cette recherche.'}<br>Vérifiez l'orthographe, ajoutez la ville, ou <a href="${esc(r.url)}" target="_blank" rel="noopener">ouvrez la recherche sur Booking</a>.</div>`;return;
+  }
+  $('rListe').innerHTML=l.map(o=>{
+    const i=r.offres.indexOf(o),dedans=dansCs(o.lien);
+    return `<article class="carte hotel${o.correspond?' vise':''}">
+      <div><div class="nom">${o.lien?`<a href="${esc(o.lien)}" target="_blank" rel="noopener">${esc(o.hotel)}</a>`:esc(o.hotel)}
+        ${o.note!=null?`<span class="note">${String(o.note).replace('.',',')}</span>`:''}${o.correspond?'<span class="tag">Hôtel recherché</span>':''}</div>
+        <div class="det">${esc(o.adresse)}${o.chambre?' · '+esc(o.chambre):''}</div></div>
+      <div class="prix">${o.prix!=null?`<div class="v num">${eur(o.prix)}</div><div class="d num">${r.nuits>1?eur(o.prix_nuit)+' / nuit':'pour 1 nuit'}</div>`:'<div class="x">Pas de prix<br>pour ces dates</div>'}</div>
+      <div class="actions">
+        <button class="btn s ${dedans?'ok':''}" data-cs="${i}" ${o.lien?'':'disabled'}>${dedans?'✓ Dans le compset':'+ Compset'}</button>
+        <button class="btn s" data-an="${i}" ${o.lien?'':'disabled'}>Prix sur l'année</button>
+      </div></article>`}).join('')||'<div class="carte vide">Aucun hôtel ne correspond au filtre.</div>';
+}
+$('rListe').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const r=recherche;
+  if(b.dataset.cs!=null){
+    const o=r.offres[+b.dataset.cs];
+    if(dansCs(o.lien))cs=cs.filter(h=>h.lien!==o.lien);else cs.push({hotel:o.hotel,adresse:o.adresse,lien:o.lien,moi:false});
+    sauverCs();dessinerRecherche();
+  } else if(b.dataset.tf!=null){
+    const o=r.offres[+b.dataset.tf];
+    lancer('/api/tarifs',{hotel:o.hotel,lien:o.lien,arrivee:r.arrivee,depart:r.depart,adultes:r.adultes});
+  } else if(b.dataset.an!=null){
+    const o=r.offres[+b.dataset.an];
+    lancer('/api/comparer',{hotels:[{hotel:o.hotel,lien:o.lien,moi:true}],debut:$('debut').value,jours,adultes:r.adultes});
+  }
+});
+
+/* ---------- compset ---------- */
+function sauverCs(){dessinerCs();majAideT();if(cs.length)$('csReprendre').hidden=true;api('/api/compset',{hotels:cs}).catch(()=>{})}
+function dessinerCs(){
+  $('nbC').textContent=cs.length;
+  $('csSous').textContent=cs.length?`${cs.length} hôtel${cs.length>1?'s':''}${cs.some(h=>h.moi)?'':' · aucun marqué comme le vôtre'}`:'Aucun hôtel';
+  $('csAide').hidden=cs.length>1;
+  $('csItems').innerHTML=cs.map((h,i)=>`<div class="it${h.moi?' moi':''}">
+    <button class="etoile" data-moi="${i}" title="${h.moi?'Mon hôtel':'Marquer comme mon hôtel'}" aria-label="Marquer ${esc(h.hotel)} comme mon hôtel">${h.moi?'★':'☆'}</button>
+    <div style="min-width:0"><div class="t" title="${esc(h.hotel)}">${esc(h.hotel)}</div><div class="a">${h.moi?'Mon hôtel':esc(h.adresse||'Concurrent')}</div></div>
+    <button class="croix" data-rm="${i}" title="Retirer du compset" aria-label="Retirer ${esc(h.hotel)}">×</button></div>`).join('');
+  majBoutonC();
+}
+$('csItems').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.moi!=null){const i=+b.dataset.moi,v=!cs[i].moi;cs.forEach(h=>h.moi=false);cs[i].moi=v}
+  if(b.dataset.rm!=null)cs.splice(+b.dataset.rm,1);
+  sauverCs();if(recherche)dessinerRecherche();
+});
+$('periodes').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;jours=+b.dataset.j;
+  document.querySelectorAll('#periodes button').forEach(x=>x.classList.toggle('on',x===b));majBoutonC()});
+const LIB_FLEX={flex:'annulation gratuite',nonflex:'non remboursable'};
+function segment(){const c=$('segCat').value,f=$('segFlex').value;return {cat:c,flex:f,tous:!c&&!f,lib:[c,LIB_FLEX[f]].filter(Boolean).join(' · ')}}
+function cleDemande(){return [cs.map(h=>h.lien).sort().join(','),$('debut').value,jours,+$('ad').value].join('|')}
+function majBoutonC(){
+  const sg=segment(),n=cs.length;
+  $('btnC').textContent=n>=2?`Comparer ${n} hôtels${sg.tous?'':' · '+sg.lib}`:'Comparer les prix';
+  if(sg.tous)$('aideC').textContent=(tarifsCs&&tarifsCs._cle===cleDemande())?'Prix le plus bas toutes chambres et conditions confondues, d\'après les tarifs détaillés déjà lus.':'Prix « à partir de » pour 1 nuit, tirés du calendrier Booking. Quelques secondes pour tout le compset, même sur un an.';
+  else{
+    const pret=tarifsCs&&tarifsCs._cle===cleDemande();
+    const min=Math.max(1,Math.round((n*jours)/6/60));
+    $('aideC').textContent=pret?'Tarifs détaillés déjà lus pour ce compset et cette période : changer de chambre ou d\'annulation est instantané.'
+      :`Lecture des tarifs détaillés de chaque jour disponible : environ ${min} min la première fois. Ensuite, changer de chambre ou d'annulation est instantané (pendant 6 h).`;
+  }
+}
+/* catégories : classement automatique d'après le nom, corrigeable à la main */
+const CATS_ALL=['Standard','Supérieure','Deluxe','Suite','Familiale','Ignorer'];
+let catPerso={};
+api('/api/categories').then(r=>{catPerso=r.categories||{}}).catch(()=>{});
+function catAuto(n){
+  const s=String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  if(/\bsuite\b/.test(s))return 'Suite';
+  if(/famil|family|quadruple|triple|communicante|connecting|[3-6] (personnes|adultes|adults|people|persons)|dortoir|dormitory|appartement|apartment/.test(s))return 'Familiale';
+  if(/deluxe|de luxe|prestige|executive|premium|luxe|signature|club|panoram|penthouse/.test(s))return 'Deluxe';
+  if(/superieur|superior|confort|comfort|privilege|charme|charm/.test(s))return 'Supérieure';
+  return 'Standard';
+}
+const catDe=(lien,nom)=>catPerso[lien+'|'+nom]||catAuto(nom);
+function dessinerCategories(){
+  const T=tarifsCs,b=$('catBloc');
+  if(!T||!comp||!comp.detail){b.hidden=true;return}
+  b.hidden=false;
+  $('catListe').innerHTML=T.hotels.map(h=>{
+    const noms=[...new Set(h.jours.flatMap(j=>j.lignes.map(l=>l.chambre)))].sort((a,b)=>CATS_ALL.indexOf(catDe(h.lien,a))-CATS_ALL.indexOf(catDe(h.lien,b))||a.localeCompare(b));
+    return `<h3 style="font-size:14px;margin:14px 0 6px">${h.moi?'★ ':''}${esc(h.hotel)}</h3>`+(noms.length?`<table><tbody>${noms.map(n=>`<tr><td style="white-space:normal">${esc(n)}</td><td style="width:170px"><select data-l="${esc(h.lien)}" data-n="${esc(n)}" style="padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel)">${CATS_ALL.map(c=>`<option ${c===catDe(h.lien,n)?'selected':''}>${c}</option>`).join('')}</select>${catPerso[h.lien+'|'+n]?' <span class="tag">modifié</span>':''}</td></tr>`).join('')}</tbody></table>`:'<p class="muted petit">Aucune chambre lue.</p>');
+  }).join('');
+}
+$('catListe').addEventListener('change',e=>{
+  const sel=e.target.closest('select');if(!sel)return;
+  const k=sel.dataset.l+'|'+sel.dataset.n;
+  if(sel.value===catAuto(sel.dataset.n))delete catPerso[k];else catPerso[k]=sel.value;
+  api('/api/categories',{categories:catPerso}).catch(()=>{});
+  comp=compDepuisTarifs(tarifsCs,segment());dessinerComp();
+});
+function compDepuisTarifs(T,sg){
+  return {debut:T.debut,jours:T.jours,adultes:T.adultes,fait_le:T.fait_le,segment:sg.lib||'toutes chambres, prix le plus bas',detail:true,
+    hotels:T.hotels.map(h=>{
+      const prix=[],etat=[];
+      h.jours.forEach(j=>{
+        if(!j.lu){prix.push(null);etat.push('inconnu');return}
+        const v=mini(j.lignes.filter(l=>{const c=catDe(h.lien,l.chambre);return c!=='Ignorer'&&(!sg.cat||c===sg.cat)&&(!sg.flex||l.flex===sg.flex)}).map(l=>l.prix));
+        prix.push(v);etat.push(v==null?(j.lignes.length?'absent':'complet'):'ok');
+      });
+      return {hotel:h.hotel,lien:h.lien,moi:h.moi,ok:true,erreur:'',prix,etat,arrondi:[]};
+    })};
+}
+let attenteSeg=null;
+$('btnC').onclick=()=>{
+  if(cs.length<2){alerte('Ajoutez au moins 2 hôtels au compset (bouton « + Compset » dans les résultats de recherche).');return}
+  const sg=segment();
+  if(tarifsCs&&tarifsCs._cle===cleDemande()){comp=compDepuisTarifs(tarifsCs,sg);masques.clear();lisse=null;vue('C');return}
+  if(sg.tous){lancer('/api/comparer',{hotels:cs,debut:$('debut').value,jours,adultes:+$('ad').value});return}
+  attenteSeg=cleDemande();
+  lancer('/api/tarifscs',{hotels:cs,debut:$('debut').value,jours,adultes:+$('ad').value});
+};
+['segCat','segFlex'].forEach(id=>$(id).addEventListener('change',()=>{
+  majBoutonC();const sg=segment();
+  if(tarifsCs&&tarifsCs._cle===cleDemande()&&!$('vueC').hidden){comp=compDepuisTarifs(tarifsCs,sg);masques.clear();dessinerComp()}
+}));
+$('debut').addEventListener('change',majBoutonC);$('ad').addEventListener('change',majBoutonC);
+let precedent=[];
+api('/api/compset').then(r=>{precedent=(r.hotels||[]).filter(h=>h&&h.lien);
+  if(precedent.length){$('csReprendre').textContent=`Reprendre le compset précédent (${precedent.length} hôtel${precedent.length>1?'s':''})`;$('csReprendre').hidden=false}
+}).catch(()=>{});
+$('csReprendre').onclick=()=>{precedent.forEach(h=>{if(!dansCs(h.lien))cs.push(h)});$('csReprendre').hidden=true;sauverCs();if(recherche)dessinerRecherche()};
+
+/* ---------- comparaison : calculs ---------- */
+function prep(c){
+  const H=c.hotels.map((h,i)=>({...h,i,coul:null}));
+  const moi=H.find(h=>h.moi)||null;
+  let k=1;H.forEach(h=>{h.coul=h===moi?COUL[0]:COUL[(k++)%COUL.length]});
+  const dates=[...Array(c.jours)].map((_,i)=>iso(addJ(parse(c.debut),i)));
+  const autres=H.filter(h=>h!==moi);
+  const moyc=dates.map((_,d)=>moy(autres.map(h=>h.prix[d])));
+  return {H,moi,autres,dates,moyc,seul:H.length===1};
+}
+function kpi(k,v,s,cl){return `<div class="carte kpi"><div class="k">${k}</div><div class="v num ${cl||''}">${v}</div><div class="s">${s||''}</div></div>`}
+let zoom=null;
+function zoomP(P){
+  if(!zoom)return P;
+  let a=P.dates.indexOf(zoom.a),b=P.dates.indexOf(zoom.b);
+  if(a<0)a=0;if(b<0)b=P.dates.length-1;if(b<a)[a,b]=[b,a];
+  const sl=arr=>(arr||[]).slice(a,b+1);
+  const H=P.H.map(h=>({...h,prix:sl(h.prix),etat:sl(h.etat),arrondi:sl(h.arrondi)}));
+  return {...P,H,moi:H.find(h=>h.moi)||null,autres:H.filter(h=>!h.moi),dates:sl(P.dates),moyc:sl(P.moyc)};
+}
+function majZoomBar(Pf,P){
+  const mois=[...new Set(Pf.dates.map(d=>d.slice(0,7)))];
+  const cur=zoom&&zoom.a.slice(0,7)===zoom.b.slice(0,7)&&zoom.a.endsWith('-01')||zoom&&P.dates[0]===zoom.a&&zoom.a.slice(0,7)===zoom.b.slice(0,7)?zoom.a.slice(0,7):'';
+  $('zMois').innerHTML='<option value="">Mois…</option>'+mois.map(m=>{const l=parse(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'});return `<option value="${m}" ${m===cur?'selected':''}>${l.charAt(0).toUpperCase()+l.slice(1)}</option>`}).join('');
+  $('zDu').min=$('zAu').min=Pf.dates[0];$('zDu').max=$('zAu').max=Pf.dates.at(-1);
+  $('zDu').value=P.dates[0];$('zAu').value=P.dates.at(-1);
+  $('zTout').disabled=!zoom;
+}
+function appliquerZoom(a,b){
+  if(!a||!b){zoom=null}else{if(b<a)[a,b]=[b,a];zoom={a,b}}
+  const n=zoom?Math.round((parse(zoom.b)-parse(zoom.a))/864e5)+1:(comp?comp.jours:0);
+  lisse=n>100?'semaine':'jour';dessinerComp();
+}
+$('zMois').onchange=()=>{const m=$('zMois').value;if(!m){appliquerZoom(null);return}
+  const P=prep(comp),ds=P.dates.filter(d=>d.startsWith(m));appliquerZoom(ds[0],ds.at(-1))};
+$('zDu').onchange=$('zAu').onchange=()=>{if($('zDu').value&&$('zAu').value)appliquerZoom($('zDu').value,$('zAu').value)};
+$('zTout').onclick=()=>appliquerZoom(null);
+function dessinerComp(){
+  const c=comp;$('cVide').hidden=!!c;$('cRes').hidden=!c;if(!c)return;
+  const Pfull=prep(c),P=zoomP(Pfull),{H,moi,dates,moyc}=P;
+  majZoomBar(Pfull,P);
+  $('btnXlsx').hidden=!(c.detail&&tarifsCs);
+  $('cTitre').textContent=(P.seul?H[0].hotel:`Compset de ${H.length} hôtels`)+(c.segment?' · '+c.segment:'');
+  const per=c.jours>=365?'1 an':c.jours>=180?'6 mois':c.jours+' jours';
+  $('cSous').textContent=`${per} à partir du ${fdl(c.debut,{day:'numeric',month:'long',year:'numeric'})} · ${c.adultes} adulte${c.adultes>1?'s':''} · prix par nuit relevés le ${c.fait_le.replace(' ',' à ')}`;
+  const echecs=H.filter(h=>!h.ok);
+  let k='';
+  if(P.seul){
+    const h=H[0],v=h.prix.map((x,i)=>({x,i})).filter(o=>o.x!=null);
+    const mn=v.reduce((a,b)=>b.x<a.x?b:a,v[0]||{}),mx=v.reduce((a,b)=>b.x>a.x?b:a,v[0]||{});
+    const complets=h.etat.filter(e=>e==='complet').length;
+    k=kpi('Prix moyen',eur(moy(h.prix)),'par nuit sur la période')+kpi('Le moins cher',eur(mn.x),mn.i!=null?fdl(dates[mn.i]):'')+kpi('Le plus cher',eur(mx.x),mx.i!=null?fdl(dates[mx.i]):'')+kpi('Jours complets',complets,`sur ${dates.length} jours`);
+  } else if(moi){
+    const ec=dates.map((_,d)=>moi.prix[d]!=null&&moyc[d]?(moi.prix[d]-moyc[d])/moyc[d]*100:null);
+    const e=moy(ec),vv=ec.filter(x=>x!=null),moins=vv.filter(x=>x<0).length;
+    k=kpi('Mon hôtel',eur(moy(moi.prix)),'prix moyen par nuit')+kpi('Compset',eur(moy(moyc)),'moyenne des concurrents')+
+      kpi('Écart moyen',e==null?'–':(e>0?'+':'')+e.toFixed(1).replace('.',',')+' %',e==null?'':e>0?'plus cher que le compset':'moins cher que le compset',e==null?'':e>0?'bad':'good')+
+      kpi('Moins cher que le compset',moins+' j',`sur ${vv.length} jours comparables`);
+  } else {
+    const tri=H.map(h=>({h,m:moy(h.prix)})).filter(o=>o.m!=null).sort((a,b)=>a.m-b.m);
+    k=kpi('Prix moyen du compset',eur(moy(moyc)),'par nuit')+kpi('Le moins cher en moyenne',eur(tri[0]?.m),esc(tri[0]?.h.hotel||''))+kpi('Le plus cher en moyenne',eur(tri.at(-1)?.m),esc(tri.at(-1)?.h.hotel||''))+kpi('Mon hôtel','★ à définir','cliquez sur l\'étoile dans le compset');
+  }
+  $('kpis').innerHTML=k;
+  if(echecs.length)alerte(`Prix non lus pour : ${echecs.map(h=>h.hotel).join(', ')}. Relancez la comparaison dans quelques minutes.`);
+  if(lisse==null)lisse=c.jours>100?'semaine':'jour';
+  document.querySelectorAll('#segLisse button').forEach(b=>b.classList.toggle('on',b.dataset.v===lisse));
+  document.querySelectorAll('#segTab button').forEach(b=>b.classList.toggle('on',b.dataset.v===sousTab));
+  P.onZoom=appliquerZoom;
+  dessinerGraph(P);dessinerLegende(P);dessinerTableau(P);dessinerCategories();
+}
+$('segLisse').onclick=e=>{const b=e.target.closest('button');if(b){lisse=b.dataset.v;dessinerComp()}};
+$('segTab').onclick=e=>{const b=e.target.closest('button');if(b){sousTab=b.dataset.v;dessinerComp()}};
+window.addEventListener('resize',()=>{if(comp&&!$('vueC').hidden)dessinerComp()});
+
+/* ---------- graphique ---------- */
+function series(P){
+  const S=P.H.map(h=>({id:'h'+h.i,nom:h.hotel,coul:h.coul,val:h.prix,epais:h.moi||P.seul?3:1.6,moi:h.moi}));
+  if(!P.seul)S.push({id:'moy',nom:P.moi?'Moyenne compset (hors mon hôtel)':'Moyenne compset',coul:MOYC,val:P.moyc,epais:2.4,tiret:true});
+  return S;
+}
+function points(val,dates,l){
+  if((l||lisse)==='jour')return val.map((v,i)=>({i,v,d:dates[i]}));
+  const out=[];for(let s=0;s<val.length;s+=7){const m=moy(val.slice(s,s+7));out.push({i:Math.min(s+3,val.length-1),v:m,d:dates[s],fin:dates[Math.min(s+6,val.length-1)]})}
+  return out;
+}
+function pas(ecart){const b=Math.pow(10,Math.floor(Math.log10(ecart/5)));for(const m of[1,2,2.5,5,10])if(ecart/(b*m)<=6)return b*m;return b*10}
+function dessinerGraph(P){
+  const zid=P.zid||'zoneG',LI=P.lisse||lisse,MQ=P.masques||masques,fv=P.fmtVal||eur,fa=P.fmtAxe||(v=>fmt.format(v)+' €');
+  const z=$(zid),W=Math.max(320,z.clientWidth||900),Hh=340,L=54,R=14,T=12,B=28;
+  const S=series(P).filter(s=>!MQ.has(s.id));
+  const pts=S.map(s=>({s,p:points(s.val,P.dates,LI)}));
+  const tous=pts.flatMap(o=>o.p.map(q=>q.v)).filter(v=>v!=null);
+  if(!tous.length){z.innerHTML='<div class="vide">Aucun prix à afficher.</div>';return}
+  let mn=Math.min(...tous),mx=Math.max(...tous);const st=pas(Math.max(mx-mn,P.ecartMin||20));mn=Math.floor(mn/st)*st;mx=Math.ceil(mx/st)*st;if(mn===mx)mx=mn+st;
+  const n=P.dates.length,x=i=>L+(W-L-R)*(n>1?i/(n-1):.5),y=v=>T+(Hh-T-B)*(1-(v-mn)/(mx-mn));
+  let g='';
+  for(let v=mn;v<=mx+1e-9;v+=st)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${fa(v)}</text>`;
+  let lastM=-1,lastX=-99;
+  P.dates.forEach((d,i)=>{const dt=parse(d);
+    if(n>62){if(dt.getMonth()!==lastM){lastM=dt.getMonth();if(x(i)-lastX<34)return;lastX=x(i);g+=`<line x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${Hh-B}" stroke="var(--line2)"/><text x="${x(i)+3}" y="${Hh-8}">${dt.toLocaleDateString('fr-FR',{month:'short'})}${dt.getMonth()===0||i===0?' '+String(dt.getFullYear()).slice(2):''}</text>`}}
+    else if(i%(n>31?7:3)===0)g+=`<text x="${x(i)}" y="${Hh-8}" text-anchor="middle">${dt.toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`;
+  });
+  pts.slice().sort((a,b)=>(a.s.moi?1:0)-(b.s.moi?1:0)).forEach(({s,p})=>{
+    let dd='',on=false,pastilles='';
+    p.forEach((q,k)=>{if(q.v==null){on=false;return}dd+=(on?'L':'M')+x(q.i).toFixed(1)+' '+y(q.v).toFixed(1);on=true;
+      const seul=(k===0||p[k-1].v==null)&&(k===p.length-1||p[k+1].v==null);
+      if(seul||p.length<=31)pastilles+=`<circle cx="${x(q.i).toFixed(1)}" cy="${y(q.v).toFixed(1)}" r="${seul?4:2.8}" fill="${s.coul}"/>`});
+    g+=`<path d="${dd}" fill="none" stroke="${s.coul}" stroke-width="${s.epais}" ${s.tiret?'stroke-dasharray="6 4"':''} stroke-linejoin="round" stroke-linecap="round"/>`+pastilles;
+  });
+  g+=`<line id="cur-${zid}" x1="0" x2="0" y1="${T}" y2="${Hh-B}" stroke="var(--muted)" stroke-dasharray="3 3" visibility="hidden"/>`;
+  g+=`<rect id="sel-${zid}" x="0" y="${T}" width="0" height="${Hh-T-B}" fill="var(--accent)" opacity=".15" visibility="hidden"/>`;
+  g+=`<rect id="capte" x="${L}" y="${T}" width="${W-L-R}" height="${Hh-T-B}" fill="transparent"/>`;
+  z.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" height="${Hh}" role="img" aria-label="Évolution des prix par nuit">${g}</svg><div class="bulle" id="bulle-${zid}" hidden></div>`;
+  const svg=z.querySelector('svg'),bulle=$('bulle-'+zid),cur=$('cur-'+zid);
+  svg.addEventListener('mousemove',ev=>{
+    const r=svg.getBoundingClientRect(),px=(ev.clientX-r.left)*W/r.width;
+    if(px<L||px>W-R){bulle.hidden=true;cur.setAttribute('visibility','hidden');return}
+    const ref=pts[0].p;let best=ref[0];ref.forEach(q=>{if(Math.abs(x(q.i)-px)<Math.abs(x(best.i)-px))best=q});
+    const idx=ref.indexOf(best);
+    cur.setAttribute('x1',x(best.i));cur.setAttribute('x2',x(best.i));cur.setAttribute('visibility','visible');
+    const lig=pts.map(({s,p})=>({s,v:p[idx]?.v})).sort((a,b)=>(a.v??1e9)-(b.v??1e9));
+    bulle.innerHTML=`<div class="dt">${LI==='jour'?fdl(best.d,{weekday:'long',day:'numeric',month:'long'}):'Semaine du '+fdl(best.d,{day:'numeric',month:'short'})}</div>`+
+      lig.map(o=>`<div class="l"><span><i class="pastille" style="background:${o.s.coul}"></i>${esc(o.s.nom)}</span><b class="num">${fv(o.v)}</b></div>`).join('');
+    bulle.hidden=false;
+    const bx=(x(best.i)/W)*r.width;bulle.style.left=(bx>r.width/2?bx-bulle.offsetWidth-14:bx+14)+'px';bulle.style.top='10px';
+  });
+  svg.addEventListener('mouseleave',()=>{bulle.hidden=true;cur.setAttribute('visibility','hidden')});
+  if(P.onZoom){
+    const sel=$('sel-'+zid);let d0=null;
+    const idxDe=ev=>{const r=svg.getBoundingClientRect(),px=Math.min(W-R,Math.max(L,(ev.clientX-r.left)*W/r.width));return {px,i:Math.round((px-L)/(W-L-R)*(n-1))}};
+    svg.addEventListener('mousedown',ev=>{if(ev.button!==0)return;d0=idxDe(ev);sel.setAttribute('x',d0.px);sel.setAttribute('width',0);sel.setAttribute('visibility','visible');ev.preventDefault()});
+    svg.addEventListener('mousemove',ev=>{if(!d0)return;const d1=idxDe(ev);sel.setAttribute('x',Math.min(d0.px,d1.px));sel.setAttribute('width',Math.abs(d1.px-d0.px))});
+    const fin=ev=>{if(!d0)return;const d1=idxDe(ev),a=Math.min(d0.i,d1.i),b=Math.max(d0.i,d1.i);d0=null;sel.setAttribute('visibility','hidden');
+      if(b-a>=2)P.onZoom(P.dates[a],P.dates[b])};
+    svg.addEventListener('mouseup',fin);svg.addEventListener('mouseleave',()=>{d0=null;sel.setAttribute('visibility','hidden')});
+    svg.addEventListener('dblclick',()=>P.onZoom(null));
+  }
+}
+function dessinerLegende(P){
+  $('legende').innerHTML=series(P).map(s=>`<button data-id="${s.id}" class="${masques.has(s.id)?'off':''}" title="Afficher / masquer"><span class="trait" style="background:${s.coul};${s.tiret?'background:repeating-linear-gradient(90deg,'+s.coul+' 0 5px,transparent 5px 8px)':''}"></span>${s.moi?'★ ':''}${esc(s.nom)}</button>`).join('');
+}
+$('legende').onclick=e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.id;masques.has(id)?masques.delete(id):masques.add(id);dessinerComp()};
+
+/* ---------- tableau ---------- */
+function cellule(v,ref,etat,moi,ar){
+  if(v==null)return `<td class="complet">${etat==='complet'?'complet':'–'}</td>`;
+  let cl='';if(ref!=null&&!moi){}
+  if(ref!=null&&moi){cl=v<ref?'moins':v>ref?'plus':''}
+  return `<td class="num ${cl}"${ar?' title="Booking affiche ce prix arrondi à la centaine (au-delà de 1 000 €)"':''}>${ar?'≈ ':''}${fmt.format(v)}</td>`;
+}
+function dessinerTableau(P){
+  const {H,moi,dates,moyc}=P,avecMoy=!P.seul;
+  const ent=`<thead><tr><th>${sousTab==='mois'?'Mois':'Arrivée'}</th>${H.map(h=>`<th><span class="pastille" style="background:${h.coul}"></span> ${h.moi?'★ ':''}${esc(h.hotel)}</th>`).join('')}${avecMoy?`<th>Moyenne compset</th>`:''}${moi&&avecMoy?'<th>Écart mon hôtel</th><th>Rang</th>':''}</tr></thead>`;
+  let lignes=[];
+  if(sousTab==='mois'){
+    const groupes={};dates.forEach((d,i)=>{(groupes[d.slice(0,7)]=groupes[d.slice(0,7)]||[]).push(i)});
+    lignes=Object.entries(groupes).map(([m,idx])=>{
+      const vals=H.map(h=>moy(idx.map(i=>h.prix[i])));
+      const mc=moy(idx.map(i=>moyc[i]));
+      const lab=parse(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+      let t=`<tr><td>${lab.charAt(0).toUpperCase()+lab.slice(1)}</td>`+H.map((h,k)=>cellule(vals[k]==null?null:Math.round(vals[k]),h.moi?mc:null,'',h.moi)).join('');
+      if(avecMoy)t+=`<td class="num moyc">${eur(mc)}</td>`;
+      if(moi&&avecMoy){const vm=vals[H.indexOf(moi)],e=vm!=null&&mc?(vm-mc)/mc*100:null;t+=`<td class="num">${e==null?'–':`<span class="pill ${e>0?'bad':'good'}">${e>0?'+':''}${e.toFixed(1).replace('.',',')} %</span>`}</td><td class="num">${rang(vals,H.indexOf(moi))}</td>`}
+      return t+'</tr>';
+    });
+    $('tabAide').textContent='Prix moyen par nuit sur les jours disponibles du mois.'+(moi?' Vert : mon hôtel moins cher que le compset.':'');
+  } else {
+    lignes=dates.map((d,i)=>{
+      const dt=parse(d),we=dt.getDay()===5||dt.getDay()===6;
+      const vals=H.map(h=>h.prix[i]);
+      let t=`<tr class="${we?'we':''}" data-d="${d}" title="Cliquez pour voir le détail des tarifs de ce jour"><td>${fdl(d,{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}</td>`+H.map((h,k)=>cellule(vals[k]==null?null:Math.round(vals[k]),h.moi?moyc[i]:null,h.etat[i],h.moi,h.arrondi&&h.arrondi[i])).join('');
+      if(avecMoy)t+=`<td class="num moyc">${eur(moyc[i])}</td>`;
+      if(moi&&avecMoy){const vm=vals[H.indexOf(moi)],e=vm!=null&&moyc[i]?(vm-moyc[i])/moyc[i]*100:null;t+=`<td class="num">${e==null?'–':`<span class="pill ${e>0?'bad':'good'}">${e>0?'+':''}${e.toFixed(1).replace('.',',')} %</span>`}</td><td class="num">${rang(vals,H.indexOf(moi))}</td>`}
+      return t+'</tr>';
+    });
+    $('tabAide').textContent='Vendredis et samedis en couleur. « complet » : aucune chambre sur Booking ce jour-là. « ≈ » : prix au-delà de 1 000 €, arrondi à la centaine par Booking.';
+  }
+  $('tabl').innerHTML=`<table>${ent}<tbody>${lignes.join('')}</tbody></table>`;
+}
+function urlJour(lien,d,ad){const d2=iso(addJ(parse(d),1));return `${lien}?checkin=${d}&checkout=${d2}&group_adults=${ad}&group_children=0&no_rooms=1&selected_currency=EUR&lang=fr`}
+function detailJour(d){
+  const c=comp;if(!c)return;
+  const T=c.detail&&tarifsCs?tarifsCs:null,i=Math.round((parse(d)-parse(c.debut))/864e5);
+  const blocs=c.hotels.map((h,k)=>{
+    const lien=`<a href="${esc(urlJour(h.lien,d,c.adultes))}" target="_blank" rel="noopener">Voir sur Booking ↗</a>`;
+    const th=T&&T.hotels.find(x=>x.lien===h.lien),j=th&&th.jours[i];
+    let corps;
+    if(!T)corps=`<p class="muted petit">Prix du calendrier Booking : <b>${eur(h.prix[i])}</b>. Choisissez une chambre ou une annulation pour lire le détail des tarifs.</p>`;
+    else if(!j||!j.lu)corps='<p class="muted petit">Fiche non lue ce jour-là.</p>';
+    else if(!j.lignes.length)corps='<p class="muted petit">Complet : aucune chambre sur Booking.</p>';
+    else{const L=j.lignes.map(l=>({...l,cat:catDe(h.lien,l.chambre)})).sort((a,b)=>a.prix-b.prix);
+      corps=`<table><thead><tr><th>Chambre</th><th>Annulation</th><th>Prix</th></tr></thead><tbody>${L.map(l=>`<tr style="${l.cat==='Ignorer'?'opacity:.45':''}"><td>${esc(l.chambre)}<div class="petit muted">${l.cat}${l.pdj?' · <span class="pdj">petit-déj. compris</span>':''}</div></td><td>${l.flex==='flex'?'Gratuite':l.flex==='nonflex'?'Non rembours.':'Autre'}</td><td class="num"><b>${eur(l.prix)}</b></td></tr>`).join('')}</tbody></table>`}
+    return `<div class="carte" style="padding:10px 12px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:6px"><b>${h.moi?'★ ':''}${esc(h.hotel)}</b><span class="petit">${lien}</span></div>
+      <div class="petit" style="margin-bottom:6px">Retenu pour « ${esc(c.segment||'prix le plus bas')} » : <b>${eur(h.prix[i])}</b></div>${corps}</div>`;
+  }).join('');
+  const f=document.createElement('div');f.className='fond';
+  f.innerHTML=`<div class="modale" role="dialog" aria-label="Détail du jour"><div class="tete"><div><h2>${fdl(d,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h2><div class="muted petit">1 nuit · ${c.adultes} adulte${c.adultes>1?'s':''} · tarifs relevés le ${c.fait_le.replace(' ',' à ')} (sans connexion Genius)</div></div><button class="btn s" data-x>Fermer</button></div><div class="grilleJour">${blocs}</div></div>`;
+  f.addEventListener('click',e=>{if(e.target===f||e.target.closest('[data-x]'))f.remove()});
+  document.addEventListener('keydown',function esc_(e){if(e.key==='Escape'){f.remove();document.removeEventListener('keydown',esc_)}});
+  document.body.appendChild(f);
+}
+$('tabl').addEventListener('click',e=>{const tr=e.target.closest('tr[data-d]');if(tr)detailJour(tr.dataset.d)});
+/* Excel complet : un onglet par catégorie × annulation */
+$('btnXlsx').onclick=()=>{
+  const T=tarifsCs;if(!T)return;
+  const nt=v=>String(v??'').replace(/[\t\n\r]/g,' ');
+  const seg=[];['',...CATS_ALL.filter(c=>c!=='Ignorer')].forEach(cat=>['','flex','nonflex'].forEach(fl=>seg.push({cat,flex:fl,tous:!cat&&!fl,
+    lib:[cat,LIB_FLEX[fl]].filter(Boolean).join(' · ')||'toutes chambres',onglet:(cat||'Toutes')+(fl==='flex'?' - Flex':fl==='nonflex'?' - Non remb.':'')})));
+  const dates=T.hotels[0].jours.map(j=>j.date);
+  const moiK=T.hotels.findIndex(h=>h.moi);
+  const synth=[['Hôtel',...seg.map(s=>s.onglet)]];
+  const res=seg.map(sg=>compDepuisTarifs(T,sg));
+  T.hotels.forEach((h,k)=>synth.push([(h.moi?'★ ':'')+h.hotel,...res.map(c=>{const m=moy(c.hotels[k].prix);return m==null?'':Math.round(m)})]));
+  synth.push([moiK>=0?'Moyenne compset (hors mon hôtel)':'Moyenne compset',...res.map(c=>{const m=moy(c.hotels.filter((_,k)=>k!==moiK).map(h=>moy(h.prix)));return m==null?'':Math.round(m)})]);
+  if(moiK>=0)synth.push(['Écart mon hôtel',...res.map(c=>{const a=moy(c.hotels[moiK].prix),b=moy(c.hotels.filter((_,k)=>k!==moiK).map(h=>moy(h.prix)));return a!=null&&b?((a-b)/b*100).toFixed(2)+'%':''})]);
+  const feuilles=[{nom:'Synthèse',tsv:synth.map(r=>r.map(nt).join('\t')).join('\n')}];
+  res.forEach((c,si)=>{
+    const L=[['Date','Jour',...T.hotels.map(h=>(h.moi?'★ ':'')+h.hotel),moiK>=0?'Moyenne compset (hors mon hôtel)':'Moyenne compset',...(moiK>=0?['Écart mon hôtel','Rang mon hôtel']:[])]];
+    dates.forEach((d,i)=>{
+      const v=c.hotels.map(h=>h.prix[i]);
+      const mc=moy(v.filter((_,k)=>k!==moiK));
+      const r=[d,parse(d).toLocaleDateString('fr-FR',{weekday:'long'}),...v.map(x=>x==null?'':Math.round(x)),mc==null?'':Math.round(mc)];
+      if(moiK>=0){const vm=v[moiK];r.push(vm!=null&&mc?((vm-mc)/mc*100).toFixed(2)+'%':'');r.push(vm==null?'':rang(v,moiK).replace(' / ','/'))}
+      L.push(r);
+    });
+    feuilles.push({nom:seg[si].onglet,tsv:L.map(r=>r.map(nt).join('\t')).join('\n')});
+  });
+  const det=[['Date','Hôtel','Chambre','Catégorie','Annulation','Petit-déjeuner','Prix par nuit']];
+  T.hotels.forEach(h=>h.jours.forEach(j=>(j.lignes||[]).forEach(l=>det.push([j.date,h.hotel,l.chambre,catDe(h.lien,l.chambre),l.flex==='flex'?'Gratuite':l.flex==='nonflex'?'Non remboursable':'Autre',l.pdj?'Compris':'',Math.round(l.prix)]))));
+  feuilles.push({nom:'Détail des tarifs',tsv:det.map(r=>r.map(nt).join('\t')).join('\n')});
+  const cats=[['Hôtel','Chambre','Catégorie']];
+  T.hotels.forEach(h=>[...new Set(h.jours.flatMap(j=>j.lignes.map(l=>l.chambre)))].sort().forEach(n=>cats.push([h.hotel,n,catDe(h.lien,n)])));
+  feuilles.push({nom:'Catégories',tsv:cats.map(r=>r.map(nt).join('\t')).join('\n')});
+  const b=$('btnXlsx');b.disabled=true;b.textContent='Création du fichier…';
+  api('/api/xlsx',{nom:'compset_complet_'+T.fait_le.replace(/[: ]/g,'-'),feuilles})
+    .then(r=>{if(r.erreur)alerte('Excel : '+r.erreur)}).catch(()=>alerte("Impossible de créer le fichier Excel."))
+    .finally(()=>{b.disabled=false;b.textContent='Excel complet (tous les onglets)'});
+};
+function rang(vals,k){if(vals[k]==null)return '–';const v=vals.filter(x=>x!=null).sort((a,b)=>a-b);return (v.indexOf(vals[k])+1)+' / '+v.length}
+
+/* ---------- export Excel ---------- */
+$('btnExcel').onclick=()=>{
+  const P=prep(comp),{H,moi,dates,moyc}=P,nb=v=>v==null?'':String(Math.round(v));
+  const e=[ 'Date','Jour',...H.map(h=>h.hotel+(h.moi?' (mon hôtel)':''))];
+  if(!P.seul)e.push('Moyenne compset');if(moi&&!P.seul)e.push('Écart mon hôtel (%)','Rang');
+  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  const L=[e.map(q).join(';')];
+  dates.forEach((d,i)=>{const dt=parse(d);const v=H.map(h=>h.prix[i]);
+    const r=[dt.toLocaleDateString('fr-FR'),dt.toLocaleDateString('fr-FR',{weekday:'long'}),...H.map(h=>h.prix[i]==null?(h.etat[i]==='complet'?'complet':''):nb(h.prix[i]))];
+    if(!P.seul)r.push(nb(moyc[i]));
+    if(moi&&!P.seul){const vm=moi.prix[i],ec=vm!=null&&moyc[i]?((vm-moyc[i])/moyc[i]*100).toFixed(1).replace('.',','):'';r.push(ec,rang(v,H.indexOf(moi)).replace(' / ','/'))}
+    L.push(r.join(';'))});
+  const nom=(P.seul?'calendrier_'+H[0].hotel:'compset')+'_'+comp.fait_le.replace(/[: ]/g,'-');
+  api('/api/excel',{nom,contenu:L.join('\r\n')}).catch(()=>alerte("Impossible d'enregistrer le fichier Excel."));
+};
+
+/* ---------- flex, non-flex et catégories ---------- */
+let tarifs=null,tarifsCs=null,sousT='hotel',joursT=1,metT='nf';
+const CATS=['Standard','Supérieure','Deluxe','Suite'];
+const mini=a=>{const v=a.filter(x=>x!=null);return v.length?Math.min(...v):null};
+const pct=(a,b)=>a!=null&&b?(a-b)/b*100:null;
+const fpct=e=>e==null?'–':`<span class="pill ${e>0?'bad':'good'}">${e>0?'+':''}${e.toFixed(1).replace('.',',')} %</span>`;
+const fpctN=e=>e==null?'–':(e>0?'+':'')+e.toFixed(1).replace('.',',')+' %';
+function majAideT(){
+  const n=cs.length,sec=Math.ceil(n*joursT*0.25)+10,dur=sec<60?`moins d'une minute`:`environ ${Math.ceil(sec/60)} min`;
+  $('aideT').textContent=n?`Tarifs pour 1 nuit, par catégorie de chambre et condition d'annulation : ${dur} pour ${n} hôtel${n>1?'s':''} × ${joursT} jour${joursT>1?'s':''} (jours complets ignorés, relance rapide grâce au cache de 6 h).`:'Ajoutez des hôtels au compset pour comparer leurs tarifs flex et non-flex.';
+}
+$('perT').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;joursT=+b.dataset.j;
+  document.querySelectorAll('#perT button').forEach(x=>x.classList.toggle('on',x===b));majAideT()});
+$('btnT').onclick=()=>{
+  if(!cs.length){alerte('Ajoutez au moins un hôtel au compset.');return}
+  lancer('/api/tarifscs',{hotels:cs,debut:$('debut').value,jours:joursT,adultes:+$('ad').value});
+};
+$('segT').onclick=e=>{const b=e.target.closest('button');if(b){sousT=b.dataset.v;dessinerT()}};
+function dessinerT(){
+  const a=!!(tarifs||tarifsCs);$('tVide').hidden=a;$('tRes').hidden=!a;if(!a)return;
+  if(sousT==='hotel'&&!tarifs)sousT='cs';if(sousT==='cs'&&!tarifsCs)sousT='hotel';
+  $('segT').hidden=!(tarifs&&tarifsCs);
+  document.querySelectorAll('#segT button').forEach(b=>b.classList.toggle('on',b.dataset.v===sousT));
+  $('tHotel').hidden=sousT!=='hotel';$('tCs').hidden=sousT!=='cs';
+  if(sousT==='hotel')dessinerTarifsHotel();else dessinerTarifsCs();
+}
+function dessinerTarifsHotel(){
+  const t=tarifs,L=t.lignes||[];
+  const nf=mini(L.filter(l=>l.flex==='nonflex').map(l=>l.prix_nuit)),f=mini(L.filter(l=>l.flex==='flex').map(l=>l.prix_nuit));
+  const chambres=[...new Set(L.map(l=>l.chambre))];
+  const lignes=chambres.map(c=>{const r=L.filter(l=>l.chambre===c);
+    const pn=mini(r.filter(l=>l.flex==='nonflex').map(l=>l.prix_nuit)),pf=mini(r.filter(l=>l.flex==='flex').map(l=>l.prix_nuit)),pa=mini(r.filter(l=>l.flex==='autre').map(l=>l.prix_nuit)),pd=mini(r.filter(l=>l.pdj).map(l=>l.prix_nuit));
+    return {c,cat:r[0].categorie,pn,pf,pa,pd,tri:mini([pn,pf,pa])};
+  }).sort((a,b)=>CATS.indexOf(a.cat)-CATS.indexOf(b.cat)||(a.tri??1e9)-(b.tri??1e9));
+  const autre=lignes.some(l=>l.pa!=null);
+  $('tHotel').innerHTML=`<div class="compHead"><div><h1>${esc(t.hotel)}</h1><div class="muted petit">${fdl(t.arrivee)} → ${fdl(t.depart)} · ${t.nuits} nuit${t.nuits>1?'s':''} · ${t.adultes} adulte${t.adultes>1?'s':''} · prix par nuit</div></div>
+    <div class="outils"><a class="btn" href="${esc(t.url)}" target="_blank" rel="noopener">Voir sur Booking ↗</a><button class="btn" id="xlsT1">Ouvrir dans Excel</button></div></div>
+    <div class="kpis">${kpi('Non remboursable',eur(nf),'le moins cher')}${kpi('Annulation gratuite',eur(f),'le moins cher')}${kpi('Écart flex',fpctN(pct(f,nf)),'flex vs non-flex',pct(f,nf)>0?'bad':'')}${kpi('Chambres',chambres.length,[...new Set(lignes.map(l=>l.cat))].join(', '))}</div>
+    <div class="carte">${L.length?`<div class="tabl"><table><thead><tr><th>Chambre</th><th>Catégorie</th><th>Non remboursable</th><th>Annulation gratuite</th>${autre?'<th>Autres conditions</th>':''}<th>Écart flex</th><th>Avec petit-déjeuner</th></tr></thead><tbody>
+    ${lignes.map(l=>`<tr><td>${esc(l.c)}</td><td><span class="cat">${l.cat}</span></td><td class="num">${eur(l.pn)}</td><td class="num">${eur(l.pf)}</td>${autre?`<td class="num">${eur(l.pa)}</td>`:''}<td class="num">${fpct(pct(l.pf,l.pn))}</td><td class="num">${l.pd!=null?`<span class="pdj">dès ${eur(l.pd)}</span>`:'–'}</td></tr>`).join('')}
+    </tbody></table></div>`:'<div class="vide">Aucune chambre disponible sur Booking pour ces dates.</div>'}
+    <div class="sousTabs"><span class="muted petit">Catégories attribuées d'après le nom de la chambre (Standard, Supérieure, Deluxe, Suite).</span></div></div>`;
+  $('xlsT1').onclick=()=>{
+    const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',n=v=>v==null?'':String(Math.round(v));
+    const E=[['Hôtel','Arrivée','Chambre','Catégorie','Annulation','Petit-déjeuner','Prix par nuit','Conditions'].map(q).join(';')];
+    L.forEach(l=>E.push([q(t.hotel),parse(t.arrivee).toLocaleDateString('fr-FR'),q(l.chambre),l.categorie,{flex:'Annulation gratuite',nonflex:'Non remboursable',autre:'Autre'}[l.flex],l.pdj?'Compris':'',n(l.prix_nuit),q(l.conditions)].join(';')));
+    api('/api/excel',{nom:'tarifs_'+t.hotel+'_'+t.arrivee,contenu:E.join('\r\n')}).catch(()=>alerte("Impossible d'enregistrer le fichier Excel."));
+  };
+}
+function deplier(T){
+  if(T.format!==2)return T;
+  T.hotels.forEach(h=>{const ch=h.chambres||[];
+    h.jours=(h.jours||[]).map((j,i)=>({date:iso(addJ(parse(T.debut),i)),lu:j!=null,
+      lignes:(j||[]).map(r=>({chambre:(ch[r[0]]||[])[0],categorie:(ch[r[0]]||[])[1],prix:r[1],flex:r[2],pdj:r[3]}))}))});
+  T.format=1;return T;
+}
+let vueTl='mois',lisseT='semaine';
+function resumeJour(lignes){
+  if(!lignes)return null;
+  const o={nf:mini(lignes.filter(l=>l.flex==='nonflex').map(l=>l.prix)),f:mini(lignes.filter(l=>l.flex==='flex').map(l=>l.prix))};
+  o.ec=pct(o.f,o.nf);CATS.forEach(c=>o[c]=mini(lignes.filter(l=>l.categorie===c).map(l=>l.prix)));return o;
+}
+function moisT(T,H,R,autres,cell){
+  const g={};T.hotels[0].jours.forEach((j,i)=>{(g[j.date.slice(0,7)]=g[j.date.slice(0,7)]||[]).push(i)});
+  return Object.entries(g).map(([m,idx])=>{
+    const vals=H.map((h,k)=>moy(idx.map(i=>R[k][i]?R[k][i][metT]:null)));
+    const mc=moy(autres.map(k=>vals[k]));
+    const lab=parse(m+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+    return `<tr><td>${lab.charAt(0).toUpperCase()+lab.slice(1)}</td>${vals.map(v=>cell(metT,v)).join('')}${H.length>1?cell(metT,mc):''}</tr>`;
+  }).join('');
+}
+function dessinerTarifsCs(){
+  const T=tarifsCs,H=T.hotels,moi=H.find(h=>h.moi);
+  const R=H.map(h=>h.jours.map(j=>j.lu?resumeJour(j.lignes):null));
+  const mets=[['nf','Non-flex'],['f','Flex'],['ec','Écart flex'],...CATS.map(c=>[c,c])];
+  const moyH=(k,m)=>moy(R[k].map(o=>o?o[m]:null));
+  const autres=H.map((h,k)=>k).filter(k=>!H[k].moi);
+  const moyCs=m=>moy(autres.map(k=>moyH(k,m)));
+  const cell=(m,v)=>m==='ec'?`<td class="num">${fpct(v)}</td>`:`<td class="num">${v==null?'–':fmt.format(v)}</td>`;
+  const lus=R.flat().filter(Boolean).length,total=H.length*T.jours;
+  let html=`<div class="compHead"><div><h1>Flex et chambres · compset de ${H.length} hôtel${H.length>1?'s':''}</h1><div class="muted petit">${T.jours>1?T.jours+' jours à partir du ':'Le '}${fdl(T.debut,{day:'numeric',month:'long',year:'numeric'})} · 1 nuit · ${T.adultes} adulte${T.adultes>1?'s':''} · ${lus}/${total} pages lues · relevé le ${T.fait_le.replace(' ',' à ')}</div></div>
+    <button class="btn" id="xlsT2">Ouvrir dans Excel</button></div>`;
+  html+=`<div class="carte bloc"><div class="blocHead"><h2>${T.jours>1?'Moyenne sur la période':'Tarifs du jour'} (prix par nuit, €)</h2><span class="muted petit">Catégories : prix le plus bas, toutes conditions confondues</span></div><div class="tabl"><table><thead><tr><th>Hôtel</th>${mets.map(m=>`<th>${m[1]}</th>`).join('')}</tr></thead><tbody>
+    ${H.map((h,k)=>`<tr class="${h.moi?'ligneMoi':''}"><td>${h.moi?'★ ':''}${esc(h.hotel)}</td>${mets.map(m=>cell(m[0],m[0]==='ec'?pct(moyH(k,'f'),moyH(k,'nf')):moyH(k,m[0]))).join('')}</tr>`).join('')}
+    ${H.length>1?`<tr class="ligneMoy"><td>Moyenne compset${moi?' (hors mon hôtel)':''}</td>${mets.map(m=>cell(m[0],m[0]==='ec'?pct(moyCs('f'),moyCs('nf')):moyCs(m[0]))).join('')}</tr>`:''}
+    </tbody></table></div></div>`;
+  const long=T.jours>31;
+  if(T.jours>1){
+    const unit=metT==='ec'?'écart flex en %':'prix par nuit';
+    if(long)html+=`<div class="carte graph"><div class="graphHead"><h2>${(mets.find(m=>m[0]===metT)||[])[1]} · ${unit}</h2><div class="seg" id="segLisT"><button data-v="jour" class="${lisseT==='jour'?'on':''}">Par jour</button><button data-v="semaine" class="${lisseT==='semaine'?'on':''}">Moyenne par semaine</button></div></div><div class="zoneG" id="zoneT"></div>
+      <div class="legende">${H.map((h,k)=>`<span style="display:flex;gap:6px;align-items:center;font-size:12.5px"><span class="trait" style="background:${COUL[k%COUL.length]}"></span>${h.moi?'★ ':''}${esc(h.hotel)}</span>`).join('')}${H.length>1?'<span style="display:flex;gap:6px;align-items:center;font-size:12.5px"><span class="trait" style="background:repeating-linear-gradient(90deg,var(--ink) 0 5px,transparent 5px 8px)"></span>Moyenne compset</span>':''}</div></div>`;
+    html+=`<div class="carte"><div class="sousTabs">${long?`<div class="seg" id="segVueT"><button data-v="mois" class="${vueTl==='mois'?'on':''}">Par mois</button><button data-v="jour" class="${vueTl==='jour'?'on':''}">Jour par jour</button></div>`:''}<div class="seg" id="segMet">${mets.map(m=>`<button data-v="${m[0]}" class="${m[0]===metT?'on':''}">${m[1]}</button>`).join('')}</div><span class="muted petit">${long&&vueTl==='mois'?'Moyenne du mois':'Jour par jour'}, ${metT==='ec'?'écart flex vs non-flex':'prix par nuit'}</span></div>
+      <div class="tabl"><table><thead><tr><th>${long&&vueTl==='mois'?'Mois':'Arrivée'}</th>${H.map(h=>`<th>${h.moi?'★ ':''}${esc(h.hotel)}</th>`).join('')}${H.length>1?'<th>Moyenne compset</th>':''}</tr></thead><tbody>
+      ${long&&vueTl==='mois'?moisT(T,H,R,autres,cell):T.hotels[0].jours.map((j,i)=>{const dt=parse(j.date),we=dt.getDay()===5||dt.getDay()===6;
+        const vals=H.map((h,k)=>R[k][i]?R[k][i][metT]:undefined);
+        const mc=moy(autres.map(k=>R[k][i]?R[k][i][metT]:null));
+        return `<tr class="${we?'we':''}"><td>${fdl(j.date,{weekday:'short',day:'2-digit',month:'2-digit'})}</td>${vals.map((v,k)=>v===undefined?'<td class="complet">non lu</td>':(v==null?`<td class="complet">${metT==='ec'?'–':'complet'}</td>`:cell(metT,v))).join('')}${H.length>1?cell(metT,mc):''}</tr>`}).join('')}
+      </tbody></table></div></div>`;
+  }
+  $('tCs').innerHTML=html;
+  const sm=$('segMet');if(sm)sm.onclick=e=>{const b=e.target.closest('button');if(b){metT=b.dataset.v;dessinerTarifsCs()}};
+  const sv=$('segVueT');if(sv)sv.onclick=e=>{const b=e.target.closest('button');if(b){vueTl=b.dataset.v;dessinerTarifsCs()}};
+  const sl=$('segLisT');if(sl)sl.onclick=e=>{const b=e.target.closest('button');if(b){lisseT=b.dataset.v;dessinerTarifsCs()}};
+  if(long){
+    const dates=T.hotels[0].jours.map(j=>j.date);
+    const HP=H.map((h,k)=>({hotel:h.hotel,moi:h.moi,i:k,coul:COUL[k%COUL.length],prix:R[k].map(o=>o?o[metT]:null)}));
+    const mp=HP.find(h=>h.moi)||null;
+    const moyc=dates.map((_,i)=>moy(HP.filter(h=>h!==mp).map(h=>h.prix[i])));
+    dessinerGraph({H:HP,moi:mp,dates,moyc,seul:H.length===1,zid:'zoneT',lisse:lisseT,masques:new Set(),ecartMin:metT==='ec'?4:20,
+      fmtVal:metT==='ec'?(v=>v==null?'–':fpctN(v)):eur,fmtAxe:metT==='ec'?(v=>fmt.format(v)+' %'):null});
+  }
+  $('xlsT2').onclick=()=>{
+    const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+    const E=[['Date','Hôtel','Chambre','Catégorie','Annulation','Petit-déjeuner','Prix par nuit'].map(q).join(';')];
+    H.forEach(h=>h.jours.forEach(j=>(j.lignes||[]).forEach(l=>E.push([parse(j.date).toLocaleDateString('fr-FR'),q(h.hotel+(h.moi?' (mon hôtel)':'')),q(l.chambre),l.categorie,{flex:'Annulation gratuite',nonflex:'Non remboursable',autre:'Autre'}[l.flex],l.pdj?'Compris':'',String(Math.round(l.prix))].join(';')))));
+    api('/api/excel',{nom:'flex_compset_'+T.fait_le.replace(/[: ]/g,'-'),contenu:E.join('\r\n')}).catch(()=>alerte("Impossible d'enregistrer le fichier Excel."));
+  };
+}
+
+/* ---------- fiches hôtels ---------- */
+let fiches=null,fDiff=false,fFiltre='';
+const LANGUES={fr:'Français',en:'Anglais',es:'Espagnol',it:'Italien',pt:'Portugais',de:'Allemand',nl:'Néerlandais',ru:'Russe',zh:'Chinois',ja:'Japonais',ar:'Arabe',pl:'Polonais',ro:'Roumain',tr:'Turc',ko:'Coréen',sv:'Suédois',da:'Danois',cs:'Tchèque',hu:'Hongrois',el:'Grec',he:'Hébreu',uk:'Ukrainien'};
+const LITS={SINGLE_BED:'lit simple',DOUBLE_BED:'lit double',LARGE_DOUBLE_BED:'grand lit double',EXTRA_LARGE_DOUBLE_BED:'très grand lit double',BUNK_BED:'lits superposés',SOFA_BED:'canapé-lit',FUTON:'futon'};
+const REPAS={BREAKFAST:'Petit-déjeuner',LUNCH:'Déjeuner',DINNER:'Dîner',ALL_INCLUSIVE:'Tout compris',HALF_BOARD:'Demi-pension',FULL_BOARD:'Pension complète'};
+function lieuxEnv(b){const out=[];let nom=[];(b.lieux||[]).forEach(l=>{if(/^\d[\d,.\s\u202f]*\s?(m|km)\*?$/i.test(l)){out.push([nom.join(' · '),l]);nom=[]}else nom.push(l)});return out}
+function txtLits(l){return (l||[]).map(conf=>conf.map(b=>`${b[0]} ${LITS[b[1]]||String(b[1]).toLowerCase().replace(/_/g,' ')}`).join(' + ')).join(' ou ')}
+function txtAnimaux(a){if(!a)return '';const o={YES:'Oui',NO:'Non',ON_REQUEST:'Sur demande'}[a[0]]||a[0];return o+(a[1]==='FREE'?' (gratuit)':a[1]==='CHARGES_MAY_APPLY'?' (supplément possible)':'')}
+function txtEnfants(e){if(!e)return '';return [e.admis?'Enfants admis':'Enfants non admis',e.litsBebe?'lits bébé':'pas de lit bébé',e.litsAppoint?"lits d'appoint":"pas de lit d'appoint"].join(' · ')}
+function lignesSynthese(H){
+  const F=H.map(h=>h.fiche||{});
+  const sous=[...new Set(F.flatMap(f=>(f.sousNotes||[]).map(x=>x[0])))];
+  const surf=f=>{const t=(f.chambres||[]).map(c=>c.taille).filter(Boolean);return t.length?(Math.min(...t)===Math.max(...t)?Math.min(...t)+' m²':Math.min(...t)+' – '+Math.max(...t)+' m²'):''};
+  const repas=(f,t)=>{const r=(f.repasDetail||[]).find(x=>x.type===t);if(!r)return '';return [r.prix,r.horaires,r.style,r.note!=null?'note '+String(r.note).replace('.',',')+'/10':''].filter(Boolean).join(' · ')};
+  const L=[
+    ['Type',f=>f.type==='HOTEL'?'Hôtel':(f.type||'').toLowerCase().replace(/_/g,' ')],
+    ['Étoiles',f=>f.etoiles?'★'.repeat(f.etoiles):''],
+    ['Note Booking',f=>f.note!=null?String(f.note).replace('.',',')+' / 10':''],
+    ["Nombre d'avis",f=>f.avis!=null?fmt.format(f.avis):''],
+    ...sous.map(n=>['Note : '+n,f=>{const x=(f.sousNotes||[]).find(y=>y[0]===n);return x?String(x[1]).replace('.',','):''}]),
+    ['Nombre de chambres',f=>f.nbChambres||''],
+    ['Types de chambres',f=>(f.chambres||[]).length||''],
+    ['Surface des chambres',surf],
+    ['Arrivée',f=>f.arrivee||''],['Départ',f=>f.depart||''],
+    ['Âge minimum',f=>f.ageMin?f.ageMin+' ans':''],
+    ['Animaux',f=>txtAnimaux(f.animaux)],['Enfants et lits',f=>txtEnfants(f.enfants)],
+    ['Petit-déjeuner',f=>repas(f,'BREAKFAST')],['Déjeuner',f=>repas(f,'LUNCH')],['Dîner',f=>repas(f,'DINNER')],
+    ['Cuisine',f=>(f.restauration||[]).join(', ')],
+    ['Langues parlées',f=>(f.langues||[]).map(c=>LANGUES[c]||c).join(', ')],
+    ['Cartes acceptées',f=>(f.cartes||[]).join(', ')],
+    ['Points forts',f=>(f.pointsForts||[]).join(' · ')],
+    ['Remontées mécaniques',f=>(f.remontees||[]).slice(0,3).map(r=>r[0]+' ('+r[1]+')').join(' · ')],
+    ['Adresse',f=>f.adresse||''],
+  ];
+  return L.map(([lib,fn])=>[lib,...F.map(f=>{try{return fn(f)}catch(e){return ''}})]).filter(r=>r.slice(1).some(v=>v!==''&&v!=null));
+}
+function matriceEquipements(H){
+  const grp={};
+  H.forEach(h=>((h.fiche||{}).equipements||[]).forEach(g=>{(grp[g.groupe]=grp[g.groupe]||new Set());g.items.forEach(i=>grp[g.groupe].add(i))}));
+  const a=(h,g,i)=>((h.fiche||{}).equipements||[]).some(x=>x.groupe===g&&x.items.includes(i));
+  return Object.keys(grp).map(g=>({groupe:g,items:[...grp[g]].sort((x,y)=>x.localeCompare(y,'fr')).map(i=>({nom:i,oui:H.map(h=>a(h,g,i))}))}));
+}
+function dessinerFiches(){
+  const F=fiches;$('fVide').hidden=!!F;$('fRes').hidden=!F;if(!F)return;
+  const H=F.hotels,lus=H.filter(h=>h.lu);
+  const tete=`<tr><th>Information</th>${H.map(h=>`<th>${h.moi?'★ ':''}${esc(h.hotel)}${h.lu?'':' <span class="pill bad">non lue</span>'}</th>`).join('')}</tr>`;
+  const syn=lignesSynthese(H);
+  const M=matriceEquipements(H);
+  const f=fFiltre.toLowerCase();
+  const lignesM=M.map(g=>{const its=g.items.filter(i=>(!fDiff||!i.oui.every(Boolean))&&(!f||i.nom.toLowerCase().includes(f)||g.groupe.toLowerCase().includes(f)));
+    return its.length?`<tr class="grp"><td colspan="${H.length+1}">${esc(g.groupe)}</td></tr>`+its.map(i=>`<tr><td>${esc(i.nom)}</td>${i.oui.map(o=>o?'<td class="oui">✓</td>':'<td class="non">–</td>').join('')}</tr>`).join(''):''}).join('');
+  const nbEq=H.map((h,k)=>M.reduce((s,g)=>s+g.items.filter(i=>i.oui[k]).length,0));
+  let html=`<div class="compHead"><div><h1>Fiches de ${H.length} hôtel${H.length>1?'s':''}</h1><div class="muted petit">${lus.length} fiche${lus.length>1?'s':''} lue${lus.length>1?'s':''} sur Booking · ${esc(F.fait_le.replace(' ',' à '))}</div></div>
+    <div class="outils"><button class="btn" id="btnFmaj">Actualiser les fiches</button><button class="btn" id="btnFxls">Ouvrir dans Excel</button></div></div>
+    <div class="carte bloc"><div class="blocHead"><h2>Synthèse</h2></div><div class="tabl fiche"><table><thead>${tete}</thead><tbody>
+    ${syn.map(r=>`<tr><td><b>${esc(r[0])}</b></td>${r.slice(1).map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}
+    <tr><td><b>Équipements recensés</b></td>${nbEq.map(n=>`<td>${n}</td>`).join('')}</tr></tbody></table></div></div>
+    <div class="carte bloc"><div class="blocHead"><h2>Équipements</h2><div class="outils"><input id="fFiltre" placeholder="Chercher un équipement…" value="${esc(fFiltre)}"><label class="petit" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="fDiff" ${fDiff?'checked':''}> Seulement les différences</label></div></div>
+    <div class="tabl fiche"><table><thead>${tete.replace('Information','Équipement')}</thead><tbody>${lignesM||`<tr><td colspan="${H.length+1}" class="muted">Aucun équipement à afficher.</td></tr>`}</tbody></table></div></div>`;
+  html+=H.map(h=>{const x=h.fiche;if(!x)return `<details class="carte hotelF"><summary>${esc(h.hotel)} — fiche non lue</summary><div class="fBody"><p class="muted">La fiche n'a pas pu être lue. Cliquez sur « Actualiser les fiches ».</p></div></details>`;
+    const li=a=>a&&a.length?`<ul class="puces">${a.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>`:'<p class="muted petit">Non renseigné.</p>';
+    const env=(x.environs||[]).map(b=>{const p=lieuxEnv(b).map(z=>z[0]+' — '+z[1]);return `<div><b class="petit">${esc(b.titre||'')}</b>${li(p)}</div>`}).join('');
+    return `<details class="carte hotelF"><summary>${h.moi?'★ ':''}${esc(h.hotel)} <span class="muted petit" style="font-weight:400">· ${x.etoiles?'★'.repeat(x.etoiles)+' · ':''}${x.note!=null?String(x.note).replace('.',',')+'/10':''} · <a href="${esc(h.lien)}" target="_blank" rel="noopener">Voir sur Booking ↗</a></span></summary>
+      <div class="fBody">
+        <div><h3>Description</h3><p style="white-space:pre-line;margin:0">${esc(x.description||'')}</p></div>
+        <div><h3>Chambres (${(x.chambres||[]).length})</h3><div class="tabl fiche" style="max-height:none"><table><thead><tr><th>Chambre</th><th>Surface</th><th>Lits</th><th>Équipements</th></tr></thead><tbody>
+          ${(x.chambres||[]).map(c=>`<tr><td><b>${esc(c.nom)}</b><div class="petit muted">${esc(c.description||'')}</div></td><td>${c.taille?c.taille+' m²':''}</td><td>${esc(txtLits(c.lits))}</td><td class="petit">${esc((c.equipements||[]).join(' · '))}</td></tr>`).join('')}
+        </tbody></table></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+          <div><h3>À savoir</h3>${li(x.aSavoir)}</div>
+          <div><h3>Règles de l'établissement</h3>${li((x.regles||[]).filter(l=>l.length>3))}</div>
+        </div>
+        ${env?`<div><h3>Environs</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">${env}</div></div>`:''}
+      </div></details>`}).join('');
+  $('fRes').innerHTML=html;
+  $('fFiltre').oninput=e=>{fFiltre=e.target.value;const pos=e.target.selectionStart;dessinerFiches();const i=$('fFiltre');i.focus();i.setSelectionRange(pos,pos)};
+  $('fDiff').onchange=e=>{fDiff=e.target.checked;dessinerFiches()};
+  $('btnFmaj').onclick=()=>lireFiches(true);
+  $('btnFxls').onclick=excelFiches;
+}
+function lireFiches(forcer){
+  if(!cs.length){alerte("Ajoutez d'abord des hôtels au compset.");return}
+  lancer('/api/fiches',{hotels:cs,forcer:!!forcer});
+}
+$('btnF').onclick=()=>lireFiches(false);
+function excelFiches(){
+  const F=fiches;if(!F)return;const H=F.hotels;
+  const nt=v=>String(v??'').replace(/[\t\n\r]+/g,' ');
+  const tsv=L=>L.map(r=>r.map(nt).join('\t')).join('\n');
+  const noms=H.map(h=>(h.moi?'★ ':'')+h.hotel);
+  const feuilles=[{nom:'Synthèse',tsv:tsv([['Information',...noms],...lignesSynthese(H)])}];
+  const M=matriceEquipements(H),eq=[['Famille','Équipement',...noms]];
+  M.forEach(g=>g.items.forEach(i=>eq.push([g.groupe,i.nom,...i.oui.map(o=>o?'Oui':'Non')])));
+  feuilles.push({nom:'Équipements',tsv:tsv(eq)});
+  const ch=[['Hôtel','Chambre','Surface (m²)','Lits','Équipements','Description']];
+  H.forEach(h=>((h.fiche||{}).chambres||[]).forEach(c=>ch.push([h.hotel,c.nom,c.taille||'',txtLits(c.lits),(c.equipements||[]).join(', '),c.description||''])));
+  feuilles.push({nom:'Chambres',tsv:tsv(ch)});
+  const rg=[['Hôtel','Règle']];H.forEach(h=>((h.fiche||{}).regles||[]).forEach(l=>rg.push([h.hotel,l])));feuilles.push({nom:'Règles',tsv:tsv(rg)});
+  const as=[['Hôtel','À savoir']];H.forEach(h=>((h.fiche||{}).aSavoir||[]).forEach(l=>as.push([h.hotel,l])));feuilles.push({nom:'À savoir',tsv:tsv(as)});
+  const en=[['Hôtel','Catégorie','Lieu','Distance']];H.forEach(h=>((h.fiche||{}).environs||[]).forEach(b=>lieuxEnv(b).forEach(z=>en.push([h.hotel,b.titre,z[0],z[1]]))));feuilles.push({nom:'Environs',tsv:tsv(en)});
+  const de=[['Hôtel','Description']];H.forEach(h=>de.push([h.hotel,(h.fiche||{}).description||'']));feuilles.push({nom:'Descriptions',tsv:tsv(de)});
+  api('/api/xlsx',{nom:'fiches_hotels_'+F.fait_le.replace(/[: ]/g,'-'),feuilles}).then(r=>{if(r.erreur)alerte('Excel : '+r.erreur)}).catch(()=>alerte("Impossible de créer le fichier Excel."));
+}
+
+dessinerCs();majAideT();
+if(comp){$('nbC').textContent=cs.length}
+})();
+</script>
+</body>
+</html>

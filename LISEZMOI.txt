@@ -1,0 +1,31 @@
+﻿PRIX HOTEL - Veille tarifaire Booking
+=====================================
+
+Installation
+------------
+Aucune. Il faut simplement un PC Windows 10 ou 11 avec Microsoft Edge (installé d'office).
+
+1. Copiez le dossier « Prix Hotel » où vous voulez (Documents, Bureau...).
+2. Double-cliquez sur « Prix hotel Booking.bat ».
+3. Si Windows affiche « Windows a protégé votre ordinateur » :
+   cliquez sur « Informations complémentaires » puis « Exécuter quand même ».
+
+Utilisation
+-----------
+- Rechercher : tapez un hôtel ou un quartier, choisissez les dates.
+- « + Compset » ajoute un hôtel au compset ; l'étoile ★ désigne votre hôtel.
+- Dans le panneau de droite : période, chambre, annulation, puis « Comparer ».
+- Onglet Comparer : graphique (cliquer-glisser pour zoomer), tableau par mois
+  ou jour par jour (cliquez sur un jour pour voir le détail des tarifs), export Excel.
+- Onglet Fiches hôtels : équipements, notes, chambres, règles et environs de chaque
+  hôtel du compset, côte à côte, avec export Excel.
+
+Bon à savoir
+------------
+- Les prix sont ceux affichés publiquement sur Booking, sans connexion Genius.
+- « Toutes / Toutes » utilise le calendrier Booking : quelques secondes.
+  Une chambre ou une annulation précise lit chaque fiche : quelques minutes la
+  première fois, puis instantané pendant 6 heures.
+- Les fichiers créés (Excel, historique, journal) sont enregistrés dans ce dossier.
+- Usage raisonnable : les conditions d'utilisation de Booking n'autorisent pas
+  la collecte automatisée ; évitez de lancer de très grosses comparaisons en boucle.
